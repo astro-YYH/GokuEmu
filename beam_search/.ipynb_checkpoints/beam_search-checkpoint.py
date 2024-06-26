@@ -2,7 +2,7 @@
 
 import sys
 # sys.path.append("/work2/01317/yyang440/frontera/matter_emu_dgmgp/")
-sys.path.append("/rhome/yyang440/bigdata/matter_emu_dgmgp-MF-Box-yanhui")
+sys.path.append("/rhome/yyang440/bigdata/GokuEmu")
 
 # command: python beam_search.py --beams=1 --n_optimization_restarts=3
 
