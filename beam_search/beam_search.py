@@ -51,7 +51,7 @@ if __name__ == "__main__":
     parser.add_argument("--n_optimization_restarts", type=int, default=5)
     parser.add_argument("--output_file", type=str, default="best_slices.txt")
     parser.add_argument("--print_all", type=int, default=0)
-    parser.add_argument("--parallel_redshift", type=int, default=0)
+    parser.add_argument("--parallel_redshift", type=int, default=1)
 
     args = parser.parse_args()
 
