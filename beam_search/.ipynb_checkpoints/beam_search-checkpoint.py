@@ -1,8 +1,10 @@
 # print all the choices of slices (not only the best one)
 
 import sys
-# sys.path.append("/work2/01317/yyang440/frontera/matter_emu_dgmgp/")
-sys.path.append("/rhome/yyang440/bigdata/GokuEmu")
+import os
+
+# Add the parent directory to the system path
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 # command: python beam_search.py --beams=1 --n_optimization_restarts=3
 
@@ -54,66 +56,66 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
 
-print("Date and time:", datetime.datetime.now())
-start_time = time.time()
-# set a random number seed to reproducibility
-np.random.seed(0)
+    print("Date and time:", datetime.datetime.now())
+    start_time = time.time()
+    # set a random number seed to reproducibility
+    np.random.seed(0)
 
-# from itertools import combinations
+    # from itertools import combinations
 
-# from trainset_optimize.optmize import TrainSetOptimize
-# from trainset_optimize.optmize import select_slices
-
-
-X_file = args.X_file
-Y_base = args.Y_base
-data_folder = args.data_dir
-
-len_slice = args.len_slice
-n_select_slc = args.n_select_slc
-beams = args.beams
-n_optimization_restarts = args.n_optimization_restarts
-output_file = args.output_file
-print_all = args.print_all
-parallel_redshift = args.parallel_redshift
-
-print("len_slice  n_select_slc  beams  n_optimization_restarts  output_file")
-print(len_slice, n_select_slc, beams, n_optimization_restarts, output_file)
-
-data = PowerSpecsMultiRedshift(folder=data_folder, X_file=X_file, Y_base=Y_base)
-
-X = data.X_norm
-Y = data.Y
-
-scale_factors = data.scale_factors
-redshifts = 1 / scale_factors - 1
-redshifts = np.round(redshifts, decimals=1)
-print("Redshifts: ", redshifts)
-
-ind_selected, loss = select_slices_redshifts(X, Y, len_slice=len_slice, n_select_slc=n_select_slc, beams=beams, n_optimization_restarts=n_optimization_restarts, print_all=print_all, parallel_redshift=parallel_redshift)
-# ind_selected, loss = select_slices(X, Y, len_slice=3, n_select_slc=3, beams=1, n_optimization_restarts=3)
-# print("Selected indices:", ind_selected)
-# print("Loss:", loss)
-
-end_time = time.time()
-elapsed_time = (end_time - start_time) / 60
+    # from trainset_optimize.optmize import TrainSetOptimize
+    # from trainset_optimize.optmize import select_slices
 
 
+    X_file = args.X_file
+    Y_base = args.Y_base
+    data_folder = args.data_dir
 
-if not print_all:
-    ind_slc = slc_ind(ind_selected, len_slice)
-    ind_selected = [element for row in ind_selected for element in row]
+    len_slice = args.len_slice
+    n_select_slc = args.n_select_slc
+    beams = args.beams
+    n_optimization_restarts = args.n_optimization_restarts
+    output_file = args.output_file
+    print_all = args.print_all
+    parallel_redshift = args.parallel_redshift
 
-    formatted_info = "%d  %d  %d  %d  %s  %s  %.6e %.2f" % (len_slice, n_select_slc, beams, n_optimization_restarts, str(ind_slc), str(ind_selected), loss, elapsed_time)
-else:
-    for i in range(len(loss)):
-        ind_slc_el = slc_ind(ind_selected[i], len_slice)
-        ind_selected_el = [element for row in ind_selected[i] for element in row]
-        if i==0:
-            formatted_info = "%d  %d  %d  %d  %s  %s  %.6e %.2f" % (len_slice, n_select_slc, beams, n_optimization_restarts, str(ind_slc_el), str(ind_selected_el), loss[i], elapsed_time)
-            continue
-        formatted_info = formatted_info + "\n%d  %d  %d  %d  %s  %s  %.6e %.2f" % (0, 0, 0, 0, str(ind_slc_el), str(ind_selected_el), loss[i], 0.)
+    print("len_slice  n_select_slc  beams  n_optimization_restarts  output_file")
+    print(len_slice, n_select_slc, beams, n_optimization_restarts, output_file)
 
-write_output(output_file, formatted_info)
+    data = PowerSpecsMultiRedshift(folder=data_folder, X_file=X_file, Y_base=Y_base)
 
-print("Date and time:", datetime.datetime.now())
+    X = data.X_norm
+    Y = data.Y
+
+    scale_factors = data.scale_factors
+    redshifts = 1 / scale_factors - 1
+    redshifts = np.round(redshifts, decimals=1)
+    print("Redshifts: ", redshifts)
+
+    ind_selected, loss = select_slices_redshifts(X, Y, len_slice=len_slice, n_select_slc=n_select_slc, beams=beams, n_optimization_restarts=n_optimization_restarts, print_all=print_all, parallel_redshift=parallel_redshift)
+    # ind_selected, loss = select_slices(X, Y, len_slice=3, n_select_slc=3, beams=1, n_optimization_restarts=3)
+    # print("Selected indices:", ind_selected)
+    # print("Loss:", loss)
+
+    end_time = time.time()
+    elapsed_time = (end_time - start_time) / 60
+
+
+
+    if not print_all:
+        ind_slc = slc_ind(ind_selected, len_slice)
+        ind_selected = [element for row in ind_selected for element in row]
+
+        formatted_info = "%d  %d  %d  %d  %s  %s  %.6e %.2f" % (len_slice, n_select_slc, beams, n_optimization_restarts, str(ind_slc), str(ind_selected), loss, elapsed_time)
+    else:
+        for i in range(len(loss)):
+            ind_slc_el = slc_ind(ind_selected[i], len_slice)
+            ind_selected_el = [element for row in ind_selected[i] for element in row]
+            if i==0:
+                formatted_info = "%d  %d  %d  %d  %s  %s  %.6e %.2f" % (len_slice, n_select_slc, beams, n_optimization_restarts, str(ind_slc_el), str(ind_selected_el), loss[i], elapsed_time)
+                continue
+            formatted_info = formatted_info + "\n%d  %d  %d  %d  %s  %s  %.6e %.2f" % (0, 0, 0, 0, str(ind_slc_el), str(ind_selected_el), loss[i], 0.)
+
+    write_output(output_file, formatted_info)
+
+    print("Date and time:", datetime.datetime.now())
