@@ -7,7 +7,7 @@ import numpy as np
 import GPy
 import contextlib
 import io
-import multiprocessing
+from mpi4py import MPI
 from functools import partial
 import datetime
 
@@ -36,6 +36,9 @@ class TrainSetOptimize:
         ind: boolean array, indicator function for the training data.
         loss_fn: the loss function we used. If not specified, mean squared errors.
         """
+        # if True:
+        #     return 1.
+        
         assert ind.dtype == bool
 
         # train a GP across all k bins
@@ -45,7 +48,7 @@ class TrainSetOptimize:
         kernel = GPy.kern.RBF(nparams, ARD=True)
         gp = GPy.models.GPRegression(self.X[ind], self.Y[ind], kernel)
 
-        gp.optimize_restarts(n_optimization_restarts, parallel=True, num_processes=None)
+        gp.optimize_restarts(n_optimization_restarts, parallel=True, num_processes=2)
 
         # predicting on the rest of X
         mean, variance = gp.predict(self.X[~ind])
@@ -182,38 +185,33 @@ def select_slices(X: np.ndarray, Y: np.ndarray, len_slice: int = 3, n_select_slc
 #     loss = np.mean(losses)
 #     return loss
 
-def loss_redshifts(train_opt_zs, ind: np.ndarray, n_optimization_restarts: int = 5, parallel: bool = True) -> float:
-    if parallel:
-        return loss_redshifts_parallel(train_opt_zs, ind, n_optimization_restarts)
-    else:
-        return loss_redshifts_sequential(train_opt_zs, ind, n_optimization_restarts)
+def loss_redshifts(train_opt_zs, ind: np.ndarray, n_optimization_restarts: int = 5) -> float:
+    comm = MPI.COMM_WORLD
+    rank = comm.Get_rank()
+    size = comm.Get_size()
 
-def loss_redshifts_sequential(train_opt_zs, ind: np.ndarray, n_optimization_restarts: int = 5) -> float:
-    losses = []
-    for train_opt in train_opt_zs:
-        # print(ind, n_optimization_restarts)
+    num_tasks = len(train_opt_zs)
+    local_num_tasks = num_tasks // size + (1 if rank < num_tasks % size else 0)
+    # print local_num_tasks
+    print("rank:", rank, "local_num_tasks:", local_num_tasks)
+    local_losses = []
+    for i in range(rank, num_tasks, size):
         with contextlib.redirect_stdout(io.StringIO()):
-            loss = train_opt.loss(ind, n_optimization_restarts=n_optimization_restarts)
-            losses.append(loss)
-    loss = np.mean(losses)
-    return loss
+            loss = train_opt_zs[i].loss(ind, n_optimization_restarts=n_optimization_restarts)
+            local_losses.append(loss)
+
+    local_losses = np.array(local_losses, dtype=float)
+    all_losses = np.zeros(size * local_num_tasks, dtype=float)
+
+    comm.Allgather(local_losses, all_losses)
+    all_losses = all_losses[:num_tasks]  # Remove padding
+    return np.mean(all_losses)
 
 def loss_redshift(train_opt, ind, n_optimization_restarts):
     """Function to compute loss for a single train_opt instance."""
     # print(ind, n_optimization_restarts)
     with contextlib.redirect_stdout(io.StringIO()):
         return train_opt.loss(ind, n_optimization_restarts=n_optimization_restarts)
-
-def loss_redshifts_parallel(train_opt_zs, ind: np.ndarray, n_optimization_restarts: int = 5) -> float:
-    num_processes = len(train_opt_zs)  # Number of processes to use
-
-    # Create a partial function with fixed arguments
-    partial_loss_redshift = partial(loss_redshift, ind=ind, n_optimization_restarts=n_optimization_restarts)
-
-    with multiprocessing.Pool(processes=num_processes) as pool:
-        losses = pool.map(partial_loss_redshift, train_opt_zs)
-    loss = np.mean(losses)
-    return loss
 
 def loss_scales_redshifts(train_opt_scales_zs, ind: np.ndarray, n_optimization_restarts:int = 5) -> float:
     losses = []
@@ -226,53 +224,169 @@ def loss_scales_redshifts(train_opt_scales_zs, ind: np.ndarray, n_optimization_r
     return loss
 
 
-def select_slices_redshifts(X: np.ndarray, Y: np.ndarray, len_slice: int = 3, n_select_slc: int = 1, beams: int = 1, n_optimization_restarts: int = 5, print_all: bool=False, parallel_redshift: bool=True):
+# def select_slices_redshifts(X: np.ndarray, Y: np.ndarray, len_slice: int = 3, n_select_slc: int = 1, beams: int = 1, n_optimization_restarts: int = 5, print_all: bool=False):
+#     """Select the slices of the training set for the low-fidelity simulation.
+    
+#     Args:
+#         X: the input of the training set
+#         Y: the output (power spectra) of the training set
+#         len_slice: the length of the slice (3 if 3 pints in a single slice)
+#         n_select_slc: the number of slices to select"""
+#     comm = MPI.COMM_WORLD
+#     rank = comm.Get_rank()
+#     size = comm.Get_size()
+
+#     # The number of slices
+#     num_samples = X.shape[0]
+#     num_slices = int(num_samples / len_slice)
+#     assert num_slices * len_slice == num_samples
+
+#     all_slices = np.arange(len_slice * num_slices).reshape(num_slices, len_slice)
+
+#     train_opt_zs = []
+#     for y in Y:
+#         train_opt_zs.append(TrainSetOptimize(X=X, Y=y))
+
+#     beam_loss = []
+#     beam_ind = []
+
+#     all_slice_loss = []
+
+#     # beam search layer 1
+#     for i, selected_ind in enumerate(all_slices):
+#         # need to convert to boolean array
+#         ind = np.zeros(num_samples, dtype=bool)
+#         ind[np.array(selected_ind)] = True
+#         if rank == 0:
+#             print("Computing loss function for slice", i)
+#         local_loss = loss_redshift(train_opt_zs[rank], ind, n_optimization_restarts=n_optimization_restarts)
+#         all_loss = np.zeros(size)
+#         comm.Allgather(local_loss, all_loss)
+#         print("local_loss:", local_loss)
+#         # print time now
+#         print("Time now:", datetime.datetime.now())
+#         print("Loss function for slice", i, "=", all_loss)
+#         all_slice_loss.append(all_loss.mean())
+        
+#     if beams == -1:
+#         beams = num_slices - n_select_slc + 1  # maximum
+#     # find the set of indices best minimize the loss
+#     ind_small_loss = np.argsort(all_slice_loss)[:beams]
+
+#     for k, ind_slc in enumerate(ind_small_loss):  # e.g., 4 in [4,11,9]
+#         print("\nBeam search: chain %d/%d" % (k+1, beams), "\n")
+
+#         selected_ind = np.array(all_slices[ind_slc])  # e.g., [4,5,6] point indices
+#         ind_selected_slc = np.array([ind_slc])  # e.g., [4]
+#         if n_select_slc == 1:
+#             beam_ind.append(selected_ind)
+#             beam_loss.append(all_slice_loss[ind_slc])
+#         else:
+#             for i in range(n_select_slc - 1):
+#                 combine_loss = []
+#                 ind_loss = []
+#                 for j in range(num_slices):
+#                     if j in ind_selected_slc:
+#                         continue
+#                     if i == 0:    # avoid repeating combinations
+#                         if j in ind_small_loss[:k]:
+#                             continue
+#                     combine_ind = np.append(selected_ind, [all_slices[j]])
+#                     print("combine_ind:", combine_ind)
+#                     ind = np.zeros(num_samples, dtype=bool)
+#                     ind[np.array(combine_ind)] = True
+#                     # print("loss uses ind:", ind)
+#                     local_loss = loss_redshift(train_opt_zs[rank], ind, n_optimization_restarts=n_optimization_restarts)
+#                     all_loss = np.zeros(size)
+#                     print("local_loss:", local_loss)
+#                     comm.Allgather(local_loss, all_loss)
+#                     print("Combine slice {} with {}, loss = {}".format(j, ind_selected_slc, all_loss))
+#                     combine_loss.append(all_loss)
+#                     ind_loss.append(j)
+#                 i_min_loss = np.argmin(combine_loss)
+#                 ind_selected_slc = np.append(ind_selected_slc,np.array([ind_loss[i_min_loss]]))
+#                 selected_ind = np.array(all_slices[ind_selected_slc])
+#             beam_ind.append(selected_ind)
+#             beam_loss.append(np.min(combine_loss))
+#             assert np.min(combine_loss) == combine_loss[i_min_loss]
+#     beam_loss = np.array(beam_loss)
+#     beam_ind = np.array(beam_ind)
+    
+#     print("Beam slices of points:", beam_ind)
+#     print("All beam losses:", beam_loss)
+#     min_loss = np.min(beam_loss)
+#     optimal_ind = beam_ind[np.argmin(beam_loss)]
+
+#     if print_all:
+#         indices = np.argsort(beam_loss)
+#         beam_loss_sorted = beam_loss[indices]
+#         beam_ind_sorted = beam_ind[indices]
+#         return beam_ind_sorted, beam_loss_sorted
+        
+#     return optimal_ind, min_loss
+
+def select_slices_redshifts(X: np.ndarray, Y: np.ndarray, len_slice: int = 3, n_select_slc: int = 1, beams: int = 1, n_optimization_restarts: int = 5, print_all: bool = False, comm=MPI.COMM_WORLD, rank=0, size=1):
     """Select the slices of the training set for the low-fidelity simulation.
     
     Args:
         X: the input of the training set
         Y: the output (power spectra) of the training set
-        len_slice: the length of the slice (3 if 3 pints in a single slice)
-        n_select_slc: the number of slices to select"""
+        len_slice: the length of the slice (3 if 3 points in a single slice)
+        n_select_slc: the number of slices to select
+    """
+    # comm = MPI.COMM_WORLD
+    # rank = comm.Get_rank()
+    # size = comm.Get_size()
+
     # The number of slices
     num_samples = X.shape[0]
-    num_slices = int(num_samples / len_slice)
+    num_slices = num_samples // len_slice
     assert num_slices * len_slice == num_samples
 
-    all_slices = np.arange(len_slice * num_slices).reshape(num_slices, len_slice)
+    all_slices = np.arange(num_samples).reshape(num_slices, len_slice)
 
-    train_opt_zs = []
-    for y in Y:
-        train_opt_zs.append(TrainSetOptimize(X=X, Y=y))
+    # train_opt_zs = [TrainSetOptimize(X=X, Y=y) for y in Y]
+    train_opt = TrainSetOptimize(X=X, Y=Y[rank])
+    all_slice_loss = []
+    # comm.Barrier()
+    # Beam search layer 1
+    for i, selected_ind in enumerate(all_slices):
+        comm.Barrier()
+        ind = np.zeros(num_samples, dtype=bool)
+        ind[selected_ind] = True
+        
+        if rank == 0:
+            print("Computing loss function for slice", i)
+        print("rank:", rank)
+        local_loss = train_opt.loss(ind, n_optimization_restarts=n_optimization_restarts)
+        # local_loss = rank * 10
+        print("rank", rank, "local_loss:", local_loss)
+        total_loss = comm.allreduce(local_loss, op=MPI.SUM)
+        print("total_loss:", total_loss)
+        
+        mean_loss = total_loss / size
+        if rank == 0:
+            print("Time now:", datetime.datetime.now())
+            print("Loss function for slice", i, "=", mean_loss)
+        all_slice_loss.append(mean_loss)
+        comm.Barrier()
+        
+    if beams == -1:
+        beams = num_slices - n_select_slc + 1  # maximum
+    
+    # Find the set of indices that best minimize the loss
+    ind_small_loss = np.argsort(all_slice_loss)[:beams]
 
     beam_loss = []
     beam_ind = []
 
-    all_slice_loss = []
+    for k, ind_slc in enumerate(ind_small_loss):
+        if rank == 0:
+            print("\nBeam search: chain %d/%d" % (k + 1, beams), "\n")
 
-    # beam search layer 1
-    for i, selected_ind in enumerate(all_slices):
-        # need to convert to boolean array
-        ind = np.zeros(num_samples, dtype=bool)
-        ind[np.array(selected_ind)] = True
-
-        print("Computing loss function for slice", i)
-        loss = loss_redshifts(train_opt_zs, ind, n_optimization_restarts=n_optimization_restarts, parallel=parallel_redshift)
-        # print time now
-        print("Time now:", datetime.datetime.now())
-        print("Loss function for slice", i, "=", loss)
-        all_slice_loss.append(loss)
+        selected_ind = all_slices[ind_slc]
+        ind_selected_slc = np.array([ind_slc])
         
-    if beams == -1:
-        beams = num_slices - n_select_slc + 1  # maximum
-    # find the set of indices best minimize the loss
-    ind_small_loss = np.argsort(all_slice_loss)[:beams]
-
-    for k, ind_slc in enumerate(ind_small_loss):  # e.g., 4 in [4,11,9]
-        print("\nBeam search: chain %d/%d" % (k+1, beams), "\n")
-
-        selected_ind = np.array(all_slices[ind_slc])  # e.g., [4,5,6] point indices
-        ind_selected_slc = np.array([ind_slc])  # e.g., [4]
         if n_select_slc == 1:
             beam_ind.append(selected_ind)
             beam_loss.append(all_slice_loss[ind_slc])
@@ -283,39 +397,46 @@ def select_slices_redshifts(X: np.ndarray, Y: np.ndarray, len_slice: int = 3, n_
                 for j in range(num_slices):
                     if j in ind_selected_slc:
                         continue
-                    if i == 0:    # avoid repeating combinations
-                        if j in ind_small_loss[:k]:
-                            continue
-                    combine_ind = np.append(selected_ind, [all_slices[j]])
-                    print("combine_ind:", combine_ind)
+                    if i == 0 and j in ind_small_loss[:k]:
+                        continue
+                    
+                    combine_ind = np.append(selected_ind, all_slices[j])
                     ind = np.zeros(num_samples, dtype=bool)
-                    ind[np.array(combine_ind)] = True
-                    # print("loss uses ind:", ind)
-                    loss = loss_redshifts(train_opt_zs, ind, n_optimization_restarts=n_optimization_restarts, parallel=parallel_redshift)
-
-                    print("Combine slice {} with {}, loss = {}".format(j, ind_selected_slc, loss))
-                    combine_loss.append(loss)
+                    ind[combine_ind] = True
+                    
+                    local_loss = loss_redshift(train_opt_zs[rank], ind, n_optimization_restarts=n_optimization_restarts)
+                    all_loss = np.zeros(size)
+                    comm.Allgather([local_loss, MPI.DOUBLE], [all_loss, MPI.DOUBLE])
+                    
+                    if rank == 0:
+                        print("Combine slice {} with {}, loss = {}".format(j, ind_selected_slc, all_loss))
+                    
+                    combine_loss.append(all_loss.mean())
                     ind_loss.append(j)
+                
                 i_min_loss = np.argmin(combine_loss)
-                ind_selected_slc = np.append(ind_selected_slc,np.array([ind_loss[i_min_loss]]))
-                selected_ind = np.array(all_slices[ind_selected_slc])
+                ind_selected_slc = np.append(ind_selected_slc, ind_loss[i_min_loss])
+                selected_ind = np.concatenate([all_slices[idx] for idx in ind_selected_slc])
+            
             beam_ind.append(selected_ind)
             beam_loss.append(np.min(combine_loss))
-            assert np.min(combine_loss) == combine_loss[i_min_loss]
+    
     beam_loss = np.array(beam_loss)
     beam_ind = np.array(beam_ind)
     
-    print("Beam slices of points:", beam_ind)
-    print("All beam losses:", beam_loss)
+    if rank == 0:
+        print("Beam slices of points:", beam_ind)
+        print("All beam losses:", beam_loss)
+    
     min_loss = np.min(beam_loss)
     optimal_ind = beam_ind[np.argmin(beam_loss)]
 
-    if print_all:
+    if print_all and rank == 0:
         indices = np.argsort(beam_loss)
         beam_loss_sorted = beam_loss[indices]
         beam_ind_sorted = beam_ind[indices]
         return beam_ind_sorted, beam_loss_sorted
-        
+    
     return optimal_ind, min_loss
 
 def select_slices_scales_redshifts(Xs: list, Ys: list, len_slice: int = 3, n_select_slc: int = 1, beams: int = 1, n_optimization_restarts: int = 5):
