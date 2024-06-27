@@ -9,6 +9,7 @@ import contextlib
 import io
 import multiprocessing
 from functools import partial
+import datetime
 
 def mean_squared_error(y_true: np.ndarray, y_pred: np.ndarray, y_pred_variance=None) -> float:
     """
@@ -257,6 +258,8 @@ def select_slices_redshifts(X: np.ndarray, Y: np.ndarray, len_slice: int = 3, n_
 
         print("Computing loss function for slice", i)
         loss = loss_redshifts(train_opt_zs, ind, n_optimization_restarts=n_optimization_restarts, parallel=parallel_redshift)
+        # print time now
+        print("Time now:", datetime.datetime.now())
         print("Loss function for slice", i, "=", loss)
         all_slice_loss.append(loss)
         

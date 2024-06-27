@@ -1,8 +1,10 @@
 # print all the choices of slices (not only the best one)
 
 import sys
-# sys.path.append("/work2/01317/yyang440/frontera/matter_emu_dgmgp/")
-sys.path.append("/rhome/yyang440/bigdata/GokuEmu")
+import os
+
+# Add the parent directory to the system path
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 # command: python beam_search.py --beams=1 --n_optimization_restarts=3
 
