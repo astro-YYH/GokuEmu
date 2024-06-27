@@ -1,8 +1,10 @@
 # print all the choices of slices (not only the best one)
 
 import sys
-# sys.path.append("/work2/01317/yyang440/frontera/matter_emu_dgmgp/")
-sys.path.append("/rhome/yyang440/bigdata/GokuEmu")
+import os
+
+# Add the parent directory to the system path
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 # command: python beam_search.py --beams=1 --n_optimization_restarts=3
 
@@ -49,7 +51,7 @@ if __name__ == "__main__":
     parser.add_argument("--n_optimization_restarts", type=int, default=5)
     parser.add_argument("--output_file", type=str, default="best_slices.txt")
     parser.add_argument("--print_all", type=int, default=0)
-    parser.add_argument("--parallel_redshift", type=int, default=1)
+    parser.add_argument("--parallel_redshift", type=int, default=0)
 
     args = parser.parse_args()
 

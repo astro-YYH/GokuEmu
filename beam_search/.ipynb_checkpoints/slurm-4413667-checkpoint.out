@@ -1,0 +1,30 @@
+
+CommandNotFoundError: Your shell has not been properly configured to use 'conda activate'.
+To initialize your shell, run
+
+    $ conda init <SHELL_NAME>
+
+Currently supported shells are:
+  - bash
+  - fish
+  - tcsh
+  - xonsh
+  - zsh
+  - powershell
+
+See 'conda init --help' for more information and options.
+
+IMPORTANT: You may need to close and restart your shell after running 'conda init'.
+
+
+r22
+Thu Jun 27 00:50:53 PDT 2024
+Traceback (most recent call last):
+  File "/bigdata/birdlab/yyang440/GokuEmu/beam_search/beam_search.py", line 18, in <module>
+    from matter_multi_fidelity_emu.data_loader import PowerSpecsMultiRedshift
+  File "/bigdata/birdlab/yyang440/GokuEmu/matter_multi_fidelity_emu/data_loader.py", line 12, in <module>
+    from .gpemulator_singlebin import _map_params_to_unit_cube as input_normalize
+  File "/bigdata/birdlab/yyang440/GokuEmu/matter_multi_fidelity_emu/gpemulator_singlebin.py", line 20, in <module>
+    import GPy
+ModuleNotFoundError: No module named 'GPy'
+Thu Jun 27 00:50:55 PDT 2024
