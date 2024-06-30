@@ -23,7 +23,7 @@ def predict(L1HF_dir, L2HF_dir, X_target, n_optimization_restarts=20, num_proces
             n_samples=400,
             optimization_restarts=n_optimization_restarts,
             ARD_last_fidelity=False,
-            parallel=True,
+            parallel=False,
             num_processes=num_processes
             )
     X_target_norm = input_normalize(X_target, data_1.parameter_limits)
@@ -50,7 +50,7 @@ def predict_z(L1HF_base,L2HF_base,z, X_target, n_optimization_restarts,num_proce
 
 L1HF_base = '../data/matter_power_297_Box100_Part75_27_Box100_Part300' 
 L2HF_base = '../data/matter_power_297_Box25_Part75_27_Box100_Part300' 
-num_processes = 2 # multiprocessing cores per MPI rank
+num_processes = 1 # multiprocessing cores per MPI rank
 n_optimization_restarts = 20 # 20 safer possibly
 
 zs = ['0', '0.2', '0.5', '1', '2', '3']
