@@ -1,5 +1,7 @@
 import sys
-sys.path.append("../../matter_emu_dgmgp-MF-Box-yanhui/")
+import os
+# Add the parent directory to the system path
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 import numpy as np
 from mpi4py import MPI
 import itertools
@@ -46,13 +48,14 @@ def predict_z(L1HF_base,L2HF_base,z, X_target, n_optimization_restarts,num_proce
         # Save the combined array to a text file, with each array as a column
     np.savetxt('matter_pow_mode_z%s.txt' % (z), P_mode, fmt='%f', header=header_str_mode)
 
-L1HF_base = '../data/matter_power_1120_Box1000_Part750_8_Box1000_Part3000' 
-L2HF_base = '../data/matter_power_1120_Box250_Part750_8_Box1000_Part3000' 
+L1HF_base = '../data/matter_power_297_Box100_Part75_27_Box100_Part300' 
+L2HF_base = '../data/matter_power_297_Box25_Part75_27_Box100_Part300' 
 num_processes = 2 # multiprocessing cores per MPI rank
-n_optimization_restarts = 14 # 20 safer possibly
+n_optimization_restarts = 20 # 20 safer possibly
 
 zs = ['0', '0.2', '0.5', '1', '2', '3']
 data_in = np.loadtxt('input.txt')
+
 if len(data_in.shape)==1:
     data_in = data_in[None,:]
 
