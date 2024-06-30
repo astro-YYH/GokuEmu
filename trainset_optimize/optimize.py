@@ -45,7 +45,7 @@ class TrainSetOptimize:
         kernel = GPy.kern.RBF(nparams, ARD=True)
         gp = GPy.models.GPRegression(self.X[ind], self.Y[ind], kernel)
 
-        gp.optimize_restarts(n_optimization_restarts, parallel=False, num_processes=8)
+        gp.optimize_restarts(n_optimization_restarts, parallel=False, num_processes=20)
 
         # predicting on the rest of X
         mean, variance = gp.predict(self.X[~ind])
