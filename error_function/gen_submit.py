@@ -52,12 +52,12 @@ def write_submit_frontera(data_dir, L1HF_base, L2HF_base, num_pairs, n_optimizat
         with open(submit_name, "w") as f:
             f.write("#!/bin/bash\n")
             f.write(f"#SBATCH --job-name=err_{i}\n")
-            f.write("#SBATCH --time=2-00:00:00\n")
+            f.write("#SBATCH --time=1-00:00:00\n")
             # f.write("#SBATCH --mem=200G\n")
             f.write("#SBATCH --nodes=1\n")
             # f.write("#SBATCH --cpus-per-task=2\n")
-            f.write("#SBATCH --ntasks-per-node=56\n")
-        # f.write("#SBATCH --mail-type=ALL\n")
+            f.write("# SBATCH --ntasks-per-node=56\n")
+            f.write("#SBATCH -A AST21005\n")
         # f.write("#SBATCH --mail-user=<email>\n")
             f.write("#SBATCH --partition={}\n".format(partition))
             f.write("\n")
@@ -67,7 +67,7 @@ def write_submit_frontera(data_dir, L1HF_base, L2HF_base, num_pairs, n_optimizat
             for num_pair in num_pairs[i*ntasks:min(i*ntasks+ntasks, len(num_pairs))]:
                 num_LF = num_pair[0]
                 num_HF = num_pair[1]
-                f.write("python -u dgmgp_error.py ")
+                f.write("python -u dgmgp_error_singlebin_z0z3.py ")
                 f.write(f"--data_dir={data_dir} ")
                 f.write(f"--L1HF_base={L1HF_base} ")
                 f.write(f"--L2HF_base={L2HF_base} ")
@@ -86,19 +86,19 @@ def find_row(array, target_row):
             return True
     return False
 
-data_dir="/rhome/yyang440/bigdata/tentative_sims/data_for_emu" # hpcc
+data_dir="../data" # hpcc
 # data_dir="/work2/01317/yyang440/frontera/tentative_sims/data_for_emu" # frontera
-L1HF_base="matter_power_270_Box100_Part75_18_Box100_Part300"
-L2HF_base="matter_power_270_Box25_Part75_18_Box100_Part300"
+L1HF_base="matter_power_297_Box100_Part75_27_Box100_Part300"
+L2HF_base="matter_power_297_Box25_Part75_27_Box100_Part300"
 
-n_sample_LF = 270
-n_sample_HF = 18
+n_sample_LF = 297
+n_sample_HF = 27
 len_slice = 3
-n_optimization_restarts = 25
-output_file = "error_function_Frontera.txt"
-cluster = "hpcc"  # frontera hpcc
-submit_prefix = "second_submit"
-restart = True
+n_optimization_restarts = 20
+output_file = "error_function_goku_pre_frontera.txt"
+cluster = "frontera"  # frontera hpcc
+submit_prefix = "error_submit"
+restart = False
 
 pairs_done = get_pairs_done(output_file).tolist() if restart == True else []
 

@@ -170,6 +170,7 @@ def select_ind(data, num_LF, num_HF, len_slice=3):
 
 def error_select(L1HF_base, L2HF_base, num_LF: int = 6, num_HF: int = 3, n_optimization_restarts: int = 5, len_slice: int = 3, parallel: bool = True) -> float:
     errors_z = []
+    zs_str = ['z0', 'z3']
 
     pattern = L1HF_base + "*"
     L1HF_dirs = [folder for folder in glob.glob(pattern) if os.path.isdir(folder)]
@@ -185,6 +186,8 @@ def error_select(L1HF_base, L2HF_base, num_LF: int = 6, num_HF: int = 3, n_optim
 
     for L1HF_dir in L1HF_dirs:
         suffix = L1HF_dir[len(L1HF_base):]
+        if suffix[1:] not in zs_str:
+            continue
         L2HF_dir = L2HF_base + suffix
         print("Computing errors for", suffix[1:], "\n")
         error_z = get_error(L1HF_dir, L2HF_dir, LF_selected_ind, HF_selected_ind, n_optimization_restarts=n_optimization_restarts, parallel=parallel)  # error_z = [#, #, #]
