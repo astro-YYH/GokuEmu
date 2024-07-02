@@ -3,3 +3,4 @@
 */*.submit
 */*.out
 */*dev.sh
+.DS_Store
