@@ -1,6 +1,7 @@
 import sys
 import os
-sys.path.append("../../matter_emu_dgmgp-MF-Box-yanhui/")
+# Add the parent directory to the system path
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 import numpy as np
 from mpi4py import MPI
 import itertools
