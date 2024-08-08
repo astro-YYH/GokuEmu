@@ -9,6 +9,8 @@
 
 module unload miniconda3/py39_4.12.0
 # module unload python3
+source ~/.bashrc
+conda activate gpy-env
 
 hostname
 date

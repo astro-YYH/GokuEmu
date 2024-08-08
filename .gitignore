@@ -3,3 +3,5 @@
 */*.submit
 */*.out
 */*dev.sh
+*/.ipynb_checkpoints
+*/*submit*.sh
