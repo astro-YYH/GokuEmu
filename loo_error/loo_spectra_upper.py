@@ -14,7 +14,8 @@ from matter_multi_fidelity_emu.gpemulator_singlebin import SingleBindGMGP
 def spec_leave(L1HF_dir, L2HF_dir, l, n_optimization_restarts=20, num_processes=5):
     data_1, data_2 = generate_data(folder_1=L1HF_dir, folder_2=L2HF_dir)
     lg_k = np.loadtxt(os.path.join(L1HF_dir, 'kf.txt'), usecols=(0))
-    HF_inds_orig = [88, 89, 90, 91, 536, 537, 538, 539]
+    HF_inds_orig = [54, 55, 56, 240, 241, 242, 522, 523, 524, 207, 208, 209, 300, 301, 302, 24, 25, 26, 72, 73, 74]
+    HF_inds_orig.sort()   # must sort
     # highres: log10_ks; lowres: log10_k
     # we are emulating data_1's highre
     HF_inds = np.arange(data_1.X_train_norm[1].shape[0])
@@ -40,7 +41,7 @@ def spec_leave(L1HF_dir, L2HF_dir, l, n_optimization_restarts=20, num_processes=
     lg_P_mean, lg_P_var = dgmgp.predict(x_test)
     return lg_k, lg_P_mean[0], lg_P_var[0]
 
-def loo_spec(L1HF_base, L2HF_base, lz, num_processes=5):
+def loo_spec(L1HF_base, L2HF_base, lz, outdir, num_processes=5):
     l = lz[0] # e.g., 0, 1, ...
     z = lz[1] # 0, 0.2
     L1HF_dir = L1HF_base + '_z%s' % z
@@ -53,21 +54,23 @@ def loo_spec(L1HF_base, L2HF_base, lz, num_processes=5):
     header_str = 'lg_k, mean(lg_P), var(lg_P), mode(P)'
     combined_array = np.column_stack((lg_k, lg_P_mean, lg_P_var, P_mode))
     # Save the combined array to a text file, with each array as a column
-    np.savetxt('matter_pow_z%s_l%d.txt' % (z, l), combined_array, fmt='%f', header=header_str)
+    savepath = os.path.join(outdir,'matter_pow_z%s_l%d.txt' % (z, l))
+    np.savetxt(savepath, combined_array, fmt='%f', header=header_str)
 
 num_processes=int(sys.argv[1])
-    
-L1HF_base = '/rhome/yyang440/bigdata/cosmo_11p_sims/data_for_emu/matter_power_1120_Box1000_Part750_8_Box1000_Part3000' 
-L2HF_base = '/rhome/yyang440/bigdata/cosmo_11p_sims/data_for_emu/matter_power_1120_Box250_Part750_8_Box1000_Part3000' 
 
+L1HF_base = '../data/matter_power_564_Box1000_Part750_21_Box1000_Part3000' 
+L2HF_base = '../data/matter_power_564_Box250_Part750_21_Box1000_Part3000' 
+
+outdir='loo_upper'
 
 zs = ['0', '0.2', '0.5', '1', '2', '3']
-leaves = np.arange(8)
+leaves = np.arange(21)
 lz_combs = list(itertools.product(leaves, zs))
 
 # only a half left
-mid = 24
-lz_combs = lz_combs[mid:]
+# mid = 24
+# lz_combs = lz_combs[mid:]
 
 if __name__ == "__main__":
     n_tasks = len(lz_combs)
@@ -75,7 +78,10 @@ if __name__ == "__main__":
     rank = comm.Get_rank()
     size = comm.Get_size() # this does not work on hpcc, weird, always size == 1
     # size = mpi_processes
-    print('mpi size', size)
+    if rank == 0:
+        if not os.path.exists(outdir):
+            os.mkdir(outdir)
+        print('mpi size', size)
     # Calculate tasks per rank
     tasks_per_rank = math.ceil(n_tasks / size)
     print('tasks_per_rank', tasks_per_rank)
@@ -89,7 +95,7 @@ if __name__ == "__main__":
     # Each rank executes its assigned tasks
     for task_id in tasks_for_this_rank:
         print(task_id)
-        loo_spec(L1HF_base,L2HF_base,lz_combs[task_id], num_processes=num_processes)
+        loo_spec(L1HF_base,L2HF_base,lz_combs[task_id], outdir, num_processes=num_processes)
 
     # Ensure all ranks finish their tasks before ending
     comm.Barrier()
