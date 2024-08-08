@@ -1,7 +1,8 @@
 import sys
-sys.path.append("../../matter_emu_dgmgp-MF-Box-yanhui/")
-
 import os
+# Add the parent directory to the system path
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+
 import numpy as np
 from matter_multi_fidelity_emu.gpemulator_singlebin import SingleBindGMGP 
 from matter_multi_fidelity_emu.data_loader import PowerSpecs

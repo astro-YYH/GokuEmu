@@ -1,0 +1,4 @@
+# 1. n_LF  2. n_HF  3. error  4. n_optimization_restarts 5. time spent (min)
+12  3  7.317522e-01  15  8.45
+297  27  4.428597e-03  15  28.99
+102  12  5.867127e-02  15  10.19
