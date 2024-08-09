@@ -2,7 +2,7 @@
 #SBATCH --job-name=loo_5
 #SBATCH --time=0-24:00:00
 # SBATCH --mem=128G
-#SBATCH --nodes=24
+#SBATCH --nodes=42
 # SBATCH --cpus-per-task=2
 #SBATCH --ntasks-per-node=1
 #SBATCH --partition=normal
