@@ -67,7 +67,7 @@ def write_submit_frontera(data_dir, L1HF_base, L2HF_base, num_pairs, n_optimizat
             for num_pair in num_pairs[i*ntasks:min(i*ntasks+ntasks, len(num_pairs))]:
                 num_LF = num_pair[0]
                 num_HF = num_pair[1]
-                f.write("python -u dgmgp_error_singlebin_z0z3.py ")
+                f.write("python -u dgmgp_error.py ")
                 f.write(f"--data_dir={data_dir} ")
                 f.write(f"--L1HF_base={L1HF_base} ")
                 f.write(f"--L2HF_base={L2HF_base} ")
