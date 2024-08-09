@@ -1,18 +1,15 @@
 #!/bin/bash
-#SBATCH --job-name=emu
-#SBATCH --time=0-00:05:00
-#SBATCH --mem=128G
-#SBATCH --nodes=1
-#SBATCH --cpus-per-task=10 # not working
-#SBATCH --ntasks-per-node=2
-#SBATCH --partition=epyc
-#SBATCH --exclusive
-# SBATCH -A AST21005
-
-# module unload miniconda3/py39_4.12.0
+#SBATCH --job-name=emu-EE2
+#SBATCH --time=0-0:10:00
+# SBATCH --mem=128G
+#SBATCH --nodes=6   # no more than num redshifts
+#SBATCH --ntasks-per-node=1
+#SBATCH --partition=development
+#SBATCH -A AST21005
 
 hostname
 date
-echo '--job-name=emu'
-python -u emu_test.py
+echo '--job-name=emu-EE2'
+ibrun python -u matter_pow_emu.py
 date
+

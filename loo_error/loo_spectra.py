@@ -1,6 +1,7 @@
 import sys
 import os
-sys.path.append("../../matter_emu_dgmgp-MF-Box-yanhui/")
+# Add the parent directory to the system path
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 import numpy as np
 from mpi4py import MPI
 import itertools
@@ -49,16 +50,16 @@ def loo_spec(L1HF_base, L2HF_base, lz, num_processes=5):
 
 num_processes=int(sys.argv[1])
     
-L1HF_base = '/work2/01317/yyang440/frontera/cosmo_11p_sims/data_for_emu/matter_power_1120_Box1000_Part750_8_Box1000_Part3000' 
-L2HF_base = '/work2/01317/yyang440/frontera/cosmo_11p_sims/data_for_emu/matter_power_1120_Box250_Part750_8_Box1000_Part3000' 
+L1HF_base = '../data/matter_power_564_Box1000_Part750_21_Box1000_Part3000' 
+L2HF_base = '../data/matter_power_564_Box250_Part750_21_Box1000_Part3000' 
 
 
 zs = ['0', '0.2', '0.5', '1', '2', '3']
-leaves = np.arange(8)
+leaves = np.arange(21)
 lz_combs = list(itertools.product(leaves, zs))
 
 # only these 2 left
-lz_combs = [(1,'0.5'),(3, '2')]
+# lz_combs = [(1,'0.5'),(3, '2')]
 
 if __name__ == "__main__":
     n_tasks = len(lz_combs)

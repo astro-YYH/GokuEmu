@@ -3,4 +3,7 @@
 */*.submit
 */*.out
 */*dev.sh
+*/.ipynb_checkpoints
+*/*submit*.sh
 .DS_Store
+
