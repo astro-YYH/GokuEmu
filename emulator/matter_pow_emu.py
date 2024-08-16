@@ -61,7 +61,7 @@ num_processes = 1 # multiprocessing cores per MPI rank
 n_optimization_restarts = 25 # larger safer possibly
 
 # zs = ['0', '0.2', '0.5', '1', '2', '3']
-zs = ['2']
+zs = ['0', '0.2', '0.5', '1', '3']
 data_in = np.loadtxt('input.txt')
 
 if len(data_in.shape)==1:
