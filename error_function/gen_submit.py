@@ -43,12 +43,12 @@ def write_submit(data_dir, L1HF_base, L2HF_base, num_LF, num_HF, n_optimization_
         f.write("\n")
         f.write("date\n")
 
-def write_submit_frontera(data_dir, L1HF_base, L2HF_base, num_pairs, n_optimization_restarts, output_file, ntasks: int = 28,partition="small"):
+def write_submit_frontera(data_dir, L1HF_base, L2HF_base, num_pairs, n_optimization_restarts, output_file, ntasks: int = 28,partition="small",submit_prefix='error_submit'):
     # print(len(num_pairs))
     # print(ntasks)
     n_submit = math.ceil(len(num_pairs)/ntasks)
     for i in range(n_submit):
-        submit_name = f"error_submit_frontera_{i}.sh"
+        submit_name = f"{submit_prefix}_frontera_{i}.sh"
         with open(submit_name, "w") as f:
             f.write("#!/bin/bash\n")
             f.write(f"#SBATCH --job-name=err_{i}\n")
@@ -62,6 +62,8 @@ def write_submit_frontera(data_dir, L1HF_base, L2HF_base, num_pairs, n_optimizat
             f.write("#SBATCH --partition={}\n".format(partition))
             f.write("\n")
             f.write("hostname\n")
+            f.write("source ~/.bashrc\n")
+            f.write("conda activate gpy-env\n")
             f.write("date\n")
             f.write("echo "+f"job-name=err_{i}\n")
             for num_pair in num_pairs[i*ntasks:min(i*ntasks+ntasks, len(num_pairs))]:
@@ -86,18 +88,18 @@ def find_row(array, target_row):
             return True
     return False
 
-data_dir="../data" # hpcc
+data_dir="../data/narrow" # hpcc
 # data_dir="/work2/01317/yyang440/frontera/tentative_sims/data_for_emu" # frontera
-L1HF_base="matter_power_297_Box100_Part75_27_Box100_Part300"
-L2HF_base="matter_power_297_Box25_Part75_27_Box100_Part300"
+L1HF_base="matter_power_378_Box100_Part75_27_Box100_Part300"
+L2HF_base="matter_power_378_Box25_Part75_27_Box100_Part300"
 
-n_sample_LF = 297
+n_sample_LF = 378
 n_sample_HF = 27
 len_slice = 3
 n_optimization_restarts = 20
-output_file = "error_function_goku_pre_frontera.txt"
+output_file = "error_function_goku_narrow_pre_frontera.txt"
 cluster = "frontera"  # frontera hpcc
-submit_prefix = "error_submit"
+submit_prefix = "error_submit_narrow"
 restart = False
 
 pairs_done = get_pairs_done(output_file).tolist() if restart == True else []
@@ -121,5 +123,5 @@ if cluster != "frontera":
         assert num_HF%len_slice == 0
         write_submit(data_dir, L1HF_base, L2HF_base, num_LF, num_HF, n_optimization_restarts, partition, output_file, prefix=submit_prefix)
 else:
-    write_submit_frontera(data_dir, L1HF_base, L2HF_base, num_pairs, n_optimization_restarts, output_file, ntasks=50)
+    write_submit_frontera(data_dir, L1HF_base, L2HF_base, num_pairs, n_optimization_restarts, output_file, ntasks=50,submit_prefix=submit_prefix)
 
