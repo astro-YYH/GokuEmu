@@ -36,7 +36,7 @@ def spec_leave(L1HF_dir, L2HF_dir, l, n_optimization_restarts=20, num_processes=
             parallel=True,
             num_processes=num_processes
             )
-    x_test = data_1.X_test_norm[0][l]
+    x_test = data_1.X_train_norm[1][l]
     x_test = x_test[None, :]
     lg_P_mean, lg_P_var = dgmgp.predict(x_test)
     return lg_k, lg_P_mean[0], lg_P_var[0]
