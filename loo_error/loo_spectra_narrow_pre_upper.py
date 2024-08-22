@@ -14,7 +14,7 @@ from matter_multi_fidelity_emu.gpemulator_singlebin import SingleBindGMGP
 def spec_leave(L1HF_dir, L2HF_dir, l, n_optimization_restarts=20, num_processes=5):
     data_1, data_2 = generate_data(folder_1=L1HF_dir, folder_2=L2HF_dir)
     lg_k = np.loadtxt(os.path.join(L1HF_dir, 'kf.txt'), usecols=(0))
-    HF_inds_orig = [54, 55, 56, 240, 241, 242, 522, 523, 524, 207, 208, 209, 300, 301, 302, 24, 25, 26, 72, 73, 74]
+    HF_inds_orig = [27, 28, 29, 279, 280, 281, 159, 160, 161, 66, 67, 68, 219, 220, 221, 282, 283, 284, 228, 229, 230, 366, 367, 368, 333, 334, 335]
     HF_inds_orig.sort()   # must sort
     # highres: log10_ks; lowres: log10_k
     # we are emulating data_1's highre
@@ -61,7 +61,7 @@ num_processes=int(sys.argv[1])
 
 L1HF_base = '../data/narrow/matter_power_378_Box100_Part75_27_Box100_Part300' 
 L2HF_base = '../data/narrow/matter_power_378_Box25_Part75_27_Box100_Part300' 
-
+# remember to change the HF_inds_orig
 outdir='loo_narrow_pre_upper'
 
 zs = ['0', '0.2', '0.5', '1', '2', '3']
