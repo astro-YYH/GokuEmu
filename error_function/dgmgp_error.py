@@ -124,15 +124,16 @@ def search_LF(data, num_LF, HF_selected_ind, len_slice):
     n_HF_slc = len(HF_selected_ind)//len_slice
 
     LF_selected_ind = []
-
+    ind_slc_LF = []
     for i in range(n_HF_slc):
         if i == n_LF_slc:
             break
         first_ind = HF_selected_ind[i*len_slice]
         ind_LF_HF = np.where(X_1[first_ind] == X_0)[0][0]
+        ind_slc_LF.append(int(ind_LF_HF/3))
         for j in range(len_slice):
             LF_selected_ind.append(ind_LF_HF + j)
-    return LF_selected_ind
+    return LF_selected_ind, ind_slc_LF
 
 def select_ind(data, num_LF, num_HF, len_slice=3):
 
@@ -156,15 +157,21 @@ def select_ind(data, num_LF, num_HF, len_slice=3):
             HF_ind = len_slice*ind_slc + i
             HF_selected_ind.append(HF_ind)
 
-    LF_selected_ind = search_LF(data, num_LF, HF_selected_ind, len_slice)
+    LF_selected_ind, LF_selected_ind_slc = search_LF(data, num_LF, HF_selected_ind, len_slice)
     print("LF_HF_common_ind:", LF_selected_ind, "\n")
 
     if num_LF > num_HF:
-        ind_slc_list = random.sample(list(range(int(n_sample_LF/len_slice))), k=int((num_LF - num_HF)/len_slice))
+        slc_list_remain = [i for i in range(int(n_sample_LF/len_slice)) if i not in LF_selected_ind_slc]
+        ind_slc_list = random.sample(slc_list_remain, k=int((num_LF - num_HF)/len_slice))
         for ind_slc in ind_slc_list:
             for i in range(len_slice):
                 LF_ind = len_slice*ind_slc + i
                 LF_selected_ind.append(LF_ind)
+    LF_selected_ind.sort()
+    HF_selected_ind.sort()
+
+    assert len(LF_selected_ind) == len(set(LF_selected_ind)), "LF_selected_ind has repeated elements"
+    assert len(HF_selected_ind) == len(set(HF_selected_ind)), "HF_selected_ind has repeated elements"
 
     return LF_selected_ind, HF_selected_ind
 
@@ -229,7 +236,7 @@ if __name__ == "__main__":
     data_dir = args.data_dir
     L1HF_base = os.path.join(data_dir,args.L1HF_base)  
     L2HF_base = os.path.join(data_dir,args.L2HF_base) 
-    error = error_select(L1HF_base, L2HF_base, num_LF=args.num_LF, num_HF=args.num_HF, n_optimization_restarts=args.n_optimization_restarts, parallel=args.parallel)
+    error = error_select(L1HF_base, L2HF_base, num_LF=args.num_LF, num_HF=args.num_HF, n_optimization_restarts=args.n_optimization_restarts, parallel=args.parallel, len_slice=3)
 
     end_time = time.time()
     elapsed_time = (end_time - start_time) / 60
