@@ -55,8 +55,8 @@ def predict_z(L1HF_base,L2HF_base,z, X_target, n_optimization_restarts,num_proce
         # Save the combined array to a text file, with each array as a column
     np.savetxt(file_mode, P_mode, fmt='%f', header=header_str_mode)
 
-L1HF_base = '../data/narrow/matter_power_378_Box100_Part75_27_Box100_Part300' 
-L2HF_base = '../data/narrow/matter_power_378_Box25_Part75_27_Box100_Part300' 
+L1HF_base = '../data/narrow/matter_power_297_Box100_Part75_27_Box100_Part300' 
+L2HF_base = '../data/narrow/matter_power_297_Box25_Part75_27_Box100_Part300' 
 num_processes = 1 # multiprocessing cores per MPI rank
 n_optimization_restarts = 25 # larger safer possibly
 
