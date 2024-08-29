@@ -10,6 +10,7 @@ from error_function.dgmgp_error import generate_data
 # import io
 from matter_multi_fidelity_emu.gpemulator_singlebin import SingleBindGMGP 
 from matter_multi_fidelity_emu.gpemulator_singlebin import _map_params_to_unit_cube as input_normalize
+from matter_multi_fidelity_emu.data_loader_dgmgp import interpolate
 import argparse
 import shutil
 
@@ -40,7 +41,7 @@ def predict(L1HF_dir, L2HF_dir, X_target, n_optimization_restarts=20, num_proces
     kf = data_1.kf[ind_min]
     data_1.kf = kf
     data_2.kf = kf
-    
+
     # with contextlib.redirect_stdout(io.StringIO()):  # Redirect stdout to a null stream
     dgmgp = SingleBindGMGP(
             X_train=[data_1.X_train_norm[0], data_2.X_train_norm[0], data_1.X_train_norm[1]],  # L1, L2, HF
