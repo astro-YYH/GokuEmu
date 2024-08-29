@@ -58,7 +58,7 @@ def predict_z(L1HF_base,L2HF_base,z, X_target, n_optimization_restarts,num_proce
 L1HF_base = '../data/narrow/matter_power_297_Box100_Part75_27_Box100_Part300' 
 L2HF_base = '../data/narrow/matter_power_297_Box25_Part75_27_Box100_Part300' 
 num_processes = 1 # multiprocessing cores per MPI rank
-n_optimization_restarts = 25 # larger safer possibly
+n_optimization_restarts = 20 # larger safer possibly
 
 zs = ['0', '0.2', '0.5', '1', '2', '3']
 # zs = ['0', '0.2', '0.5', '1', '3']
