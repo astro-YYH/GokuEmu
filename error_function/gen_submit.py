@@ -88,7 +88,7 @@ def find_row(array, target_row):
             return True
     return False
 
-data_dir="../data/narrow" # hpcc
+data_dir="../data/" # hpcc
 # data_dir="/work2/01317/yyang440/frontera/tentative_sims/data_for_emu" # frontera
 L1HF_base="matter_power_297_Box100_Part75_27_Box100_Part300"
 L2HF_base="matter_power_297_Box25_Part75_27_Box100_Part300"
@@ -97,9 +97,9 @@ n_sample_LF = 297
 n_sample_HF = 27
 len_slice = 3
 n_optimization_restarts = 20
-output_file = "error_function_goku_narrow_pre_frontera.txt"
+output_file = "error_function_goku_pre_wide_frontera.txt"
 cluster = "frontera"  # frontera hpcc
-submit_prefix = "error_submit_narrow"
+submit_prefix = "error_submit_wide"
 restart = False
 
 pairs_done = get_pairs_done(output_file).tolist() if restart == True else []
