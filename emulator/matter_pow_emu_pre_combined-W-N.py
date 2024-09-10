@@ -60,8 +60,8 @@ L2HF_base = '../data/combined/matter_power_594_Box25_Part75_54_Box100_Part300'
 num_processes = 1 # multiprocessing cores per MPI rank
 n_optimization_restarts = 25 # larger safer possibly
 
-# zs = ['0', '0.2', '0.5', '1', '2', '3']
-zs = ['0']
+zs = ['0', '0.2', '0.5', '1', '2', '3']
+# zs = ['0']
 data_in = np.loadtxt('input-pre-combined.txt')
 
 if len(data_in.shape)==1:

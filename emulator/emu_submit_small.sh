@@ -2,8 +2,8 @@
 #SBATCH --job-name=pre-combined
 #SBATCH --time=0-24:00:00
 # SBATCH --mem=128G
-#SBATCH --nodes=1   # no more than num redshifts
-#SBATCH --ntasks-per-node=1
+#SBATCH --nodes=2   # no more than num redshifts
+#SBATCH --ntasks-per-node=3
 #SBATCH --partition=small
 #SBATCH -A AST21005
 
