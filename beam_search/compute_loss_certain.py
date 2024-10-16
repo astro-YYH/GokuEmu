@@ -25,7 +25,8 @@ from trainset_optimize.optimize import TrainSetOptimize, loss_redshifts
 n_optimization_restarts = 20
 parallel_redshift = True
 
-data = PowerSpecsMultiRedshift(folder='../data/cosmo_10p_Box250_Part750_data', X_file='train_input.txt', Y_base='train_output')
+# data = PowerSpecsMultiRedshift(folder='../data/cosmo_10p_Box250_Part750_data', X_file='train_input.txt', Y_base='train_output')
+data = PowerSpecsMultiRedshift(folder='../data/narrow/cosmo_10p_Box250_Part750_data', X_file='train_input.txt', Y_base='train_output')
 
 X = data.X_norm
 Y = data.Y
@@ -35,8 +36,10 @@ for y in Y:
     train_opt_zs.append(TrainSetOptimize(X=X, Y=y))
 
 # slices
-ind_slc = np.array([136,  36,  56, 186,  68,  15,  64])
-selected_ind = np.concatenate([ind_slc * 3, ind_slc * 3 + 1, ind_slc * 3 + 2]) 
+# ind_slc = np.array([136,  36,  56, 186,  68,  15,  64])  # goku-w
+ind_slc = np.array([175, 59, 152, 108, 29])  # goku-n
+
+selected_ind = np.concatenate([ind_slc * 3, ind_slc * 3 + 1, ind_slc * 3 + 2])
 
 num_samples = X.shape[0]
 ind = np.zeros(num_samples, dtype=bool)

@@ -1,6 +1,6 @@
 #!/bin/bash
 #SBATCH --job-name=emu-single
-#SBATCH --time=0-8:00:00
+#SBATCH --time=0-12:00:00
 # SBATCH --mem=128G
 #SBATCH --nodes=2   # no more than num redshifts
 #SBATCH --ntasks-per-node=1
@@ -14,6 +14,7 @@ which python
 hostname
 date
 echo '--job-name=emu-single'
-ibrun python -u matter_pow_emu.py --outdir Goku-W_single_param_dependence
+# ibrun python -u matter_pow_emu.py --outdir Goku-W_single_param_dependence
+ibrun python -u matter_pow_emu_narrow.py --outdir cosmo_EE2_narrow_comparison
 date
 
