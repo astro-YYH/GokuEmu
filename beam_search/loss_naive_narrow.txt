@@ -1,0 +1,13 @@
+c211-026.frontera.tacc.utexas.edu
+Wed Oct 30 14:33:05 CDT 2024
+Computing loss for slice combination [175  59 152 108  29]
+points [525 177 456 324  87 526 178 457 325  88 527 179 458 326  89]
+ /work2/01317/yyang440/frontera/anaconda3/envs/gpy-env/lib/python3.8/site-packages/GPy/kern/src/stationary.py:243: RuntimeWarning:invalid value encountered in true_divide
+ /work2/01317/yyang440/frontera/anaconda3/envs/gpy-env/lib/python3.8/site-packages/GPy/kern/src/stationary.py:137: RuntimeWarning:overflow encountered in square
+ /work2/01317/yyang440/frontera/anaconda3/envs/gpy-env/lib/python3.8/site-packages/GPy/kern/src/stationary.py:138: RuntimeWarning:invalid value encountered in add
+ /work2/01317/yyang440/frontera/anaconda3/envs/gpy-env/lib/python3.8/site-packages/GPy/kern/src/stationary.py:137: RuntimeWarning:overflow encountered in square
+ /work2/01317/yyang440/frontera/anaconda3/envs/gpy-env/lib/python3.8/site-packages/GPy/kern/src/stationary.py:138: RuntimeWarning:invalid value encountered in add
+ /work2/01317/yyang440/frontera/anaconda3/envs/gpy-env/lib/python3.8/site-packages/GPy/kern/src/stationary.py:137: RuntimeWarning:overflow encountered in square
+ /work2/01317/yyang440/frontera/anaconda3/envs/gpy-env/lib/python3.8/site-packages/GPy/kern/src/stationary.py:138: RuntimeWarning:invalid value encountered in add
+loss = 0.002242240894508693
+Wed Oct 30 14:33:52 CDT 2024
