@@ -65,8 +65,8 @@ L2HF_base = '../data/narrow/matter_power_564_Box250_Part750_7_Box1000_Part3000'
 outdir='loo_narrow_upper_7HF'
 
 # zs = ['0', '0.2', '0.5', '1', '2', '3']
-zs = ['0', '0.2', '0.5']
-# zs = ['1', '2', '3']
+# zs = ['0', '0.2', '0.5']
+zs = ['1', '2', '3']
 leaves = np.arange(7)
 lz_combs = list(itertools.product(leaves, zs))
 
