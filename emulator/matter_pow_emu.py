@@ -60,9 +60,9 @@ L2HF_base = '../data/matter_power_564_Box250_Part750_21_Box1000_Part3000'
 num_processes = 1 # multiprocessing cores per MPI rank
 n_optimization_restarts = 25 # larger safer possibly
 
-# zs = ['0', '0.2', '0.5', '1', '2', '3']
-zs = ['0', '0.2', '0.5', '1', '3']
-data_in = np.loadtxt('input.txt')
+zs = ['0', '0.2', '0.5', '1', '2', '3']
+# zs = ['0', '0.2', '0.5', '1', '3']
+data_in = np.loadtxt('input-wide.txt')
 
 if len(data_in.shape)==1:
     data_in = data_in[None,:]
