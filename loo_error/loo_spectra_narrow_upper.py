@@ -14,7 +14,7 @@ from matter_multi_fidelity_emu.gpemulator_singlebin import SingleBindGMGP
 def spec_leave(L1HF_dir, L2HF_dir, l, n_optimization_restarts=20, num_processes=5):
     data_1, data_2 = generate_data(folder_1=L1HF_dir, folder_2=L2HF_dir)
     lg_k = np.loadtxt(os.path.join(L1HF_dir, 'kf.txt'), usecols=(0))
-    HF_inds_orig = [144, 145, 146, 168, 169, 170, 195, 196, 197]
+    HF_inds_orig = [144, 145, 146, 168, 169, 170, 195, 196, 197, 204, 205, 206]
     HF_inds_orig.sort()   # must sort
     # highres: log10_ks; lowres: log10_k
     # we are emulating data_1's highre
@@ -59,15 +59,15 @@ def loo_spec(L1HF_base, L2HF_base, lz, outdir, num_processes=5):
 
 num_processes=int(sys.argv[1])
 
-L1HF_base = '../data/narrow/matter_power_564_Box1000_Part750_9_Box1000_Part3000' 
-L2HF_base = '../data/narrow/matter_power_564_Box250_Part750_9_Box1000_Part3000' 
+L1HF_base = '../data/narrow/matter_power_564_Box1000_Part750_12_Box1000_Part3000' 
+L2HF_base = '../data/narrow/matter_power_564_Box250_Part750_12_Box1000_Part3000' 
 
-outdir='loo_narrow_upper_9HF'
+outdir='loo_narrow_upper_12HF'
 
 zs = ['0', '0.2', '0.5', '1', '2', '3']
 # zs = ['0', '0.2', '0.5']
 # zs = ['1', '2', '3']
-leaves = np.arange(9)
+leaves = np.arange(12)
 lz_combs = list(itertools.product(leaves, zs))
 
 # only a half left
