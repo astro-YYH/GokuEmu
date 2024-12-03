@@ -55,14 +55,14 @@ def predict_z(L1HF_base,L2HF_base,z, X_target, n_optimization_restarts,num_proce
         # Save the combined array to a text file, with each array as a column
     np.savetxt(file_mode, P_mode, fmt='%f', header=header_str_mode)
 
-L1HF_base = '../data/narrow/matter_power_564_Box1000_Part750_4_Box1000_Part3000' 
-L2HF_base = '../data/narrow/matter_power_564_Box250_Part750_4_Box1000_Part3000' 
+L1HF_base = '../data/narrow/matter_power_564_Box1000_Part750_15_Box1000_Part3000' 
+L2HF_base = '../data/narrow/matter_power_564_Box250_Part750_15_Box1000_Part3000' 
 num_processes = 1 # multiprocessing cores per MPI rank
 n_optimization_restarts = 25 # larger safer possibly
 
 zs = ['0', '0.2', '0.5', '1', '2', '3']
 # zs = ['0', '0.2', '0.5', '1', '3']
-data_in = np.loadtxt('input_EE2_narrow.txt')
+data_in = np.loadtxt('input_reference_EE2_narrow.txt')
 
 if len(data_in.shape)==1:
     data_in = data_in[None,:]
