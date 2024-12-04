@@ -62,7 +62,7 @@ n_optimization_restarts = 25 # larger safer possibly
 
 zs = ['0', '0.2', '0.5', '1', '2', '3']
 # zs = ['0', '0.2', '0.5', '1', '3']
-data_in = np.loadtxt('input-wide.txt')
+data_in = np.loadtxt('input_reference_sensitivity.txt')
 
 if len(data_in.shape)==1:
     data_in = data_in[None,:]
