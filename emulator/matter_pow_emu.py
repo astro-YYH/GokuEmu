@@ -62,7 +62,8 @@ n_optimization_restarts = 25 # larger safer possibly
 
 zs = ['0', '0.2', '0.5', '1', '2', '3']
 # zs = ['0', '0.2', '0.5', '1', '3']
-data_in = np.loadtxt('input_reference_sensitivity.txt')
+# data_in = np.loadtxt('input_reference_sensitivity.txt')
+data_in = np.loadtxt('input_HF_narrow.txt')  # test against Goku-N HF simulations
 
 if len(data_in.shape)==1:
     data_in = data_in[None,:]
