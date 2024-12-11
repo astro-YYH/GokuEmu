@@ -53,7 +53,7 @@ def predict_z(L1HF_base,L2HF_base,z, X_target, n_optimization_restarts,num_proce
     file_mode = os.path.join(outdir, 'matter_pow_mode_z%s.txt' % (z))
     P_mode = 10**lg_P_mean * np.exp(-lg_P_var * (np.log(10)) **2)
         # Save the combined array to a text file, with each array as a column
-    np.savetxt(file_mode, P_mode, fmt='%f', header=header_str_mode)
+    np.savetxt(file_mode, P_mode, fmt='%e', header=header_str_mode)
 
 L1HF_base = '../data/matter_power_564_Box1000_Part750_21_Box1000_Part3000' 
 L2HF_base = '../data/matter_power_564_Box250_Part750_21_Box1000_Part3000' 
