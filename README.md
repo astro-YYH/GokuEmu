@@ -10,4 +10,4 @@ Requirements:
 - pyDOE
 - emukit
 
-## Detailed descriptions of how to use the code is coming soon!
+## Detailed descriptions of how to use the code are coming soon!
