@@ -69,6 +69,8 @@ if __name__ == "__main__":
     if rank == 0:
         if not os.path.exists(outdir):
             os.mkdir(outdir)
+    
+    comm.Barrier()
 
     # Distribute the tasks evenly across ranks
     tasks_for_this_rank = [i for i in range(rank, n_tasks, size)]

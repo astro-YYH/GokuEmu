@@ -1,10 +1,10 @@
 #!/bin/bash
-#SBATCH --job-name=emu-single
-#SBATCH --time=0-12:00:00
+#SBATCH --job-name=emu-train
+#SBATCH --time=0-24:00:00
 # SBATCH --mem=128G
-#SBATCH --nodes=2   # no more than num redshifts
+#SBATCH --nodes=6   # no more than num redshifts
 #SBATCH --ntasks-per-node=1
-#SBATCH --partition=small
+#SBATCH --partition=gg
 #SBATCH -A AST21005
 
 source ~/.bashrc
@@ -13,8 +13,8 @@ which python
 
 hostname
 date
-echo '--job-name=emu-single'
+echo '--job-name=emu-train'
 # ibrun python -u matter_pow_emu.py --outdir Goku-W_single_param_dependence
-ibrun python -u matter_pow_emu_narrow.py --outdir cosmo_EE2_narrow_comparison
+ibrun python -u matter_pow_emu_train.py --outdir pre-trained/goku  # GokuEmu
 date
 
