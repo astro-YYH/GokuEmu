@@ -6,4 +6,5 @@
 */.ipynb_checkpoints
 */*submit*.sh
 .DS_Store
+test/
 

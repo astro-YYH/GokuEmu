@@ -16,7 +16,7 @@ from typing import Tuple, List, Optional, Dict
 
 import logging
 import numpy as np
-
+import os
 import GPy
 from emukit.model_wrappers import GPyModelWrapper, GPyMultiOutputWrapper
 
@@ -291,21 +291,83 @@ class SingleBindGMGP:
     :param ARD_last_fidelity: whether to apply ARD for the last (highest) fidelity.
         Default, False.
     """
+
     def __init__(
+        self,
+        X_train: Optional[List[np.ndarray]] = None,  # Optional for loading pretrained
+        Y_train: Optional[List[np.ndarray]] = None,  # Optional for loading pretrained
+        n_fidelities: Optional[int] = None,          # Optional for pretrained models
+        n_samples: int = 500,                       
+        optimization_restarts: int = 30,             # Only used for training
+        ARD_last_fidelity: bool = False,             # Only used for training
+        parallel: bool = False,                      # Only used for training
+        num_processes: Optional[int] = None,         # Only used for training
+        load_path: Optional[str] = None              # Path for pretrained models
+        ) -> None:
+        """
+        Initialize the multi-fidelity Gaussian Process model.
+
+        Parameters:
+        ----
+        :param X_train: List of training input parameters for multiple fidelities.
+        :param Y_train: List of training output parameters for multiple fidelities.
+        :param n_fidelities: Number of fidelities (required for training only).
+        :param n_samples: Number of samples for quasi-Monte-Carlo integration at each fidelity (training only).
+        :param optimization_restarts: Number of optimization restarts in GPy (training only).
+        :param ARD_last_fidelity: Whether to apply ARD for the last (highest) fidelity (training only).
+        :param parallel: Whether to optimize in parallel (training only).
+        :param num_processes: Number of parallel processes (training only).
+        :param load_path: Path to pretrained models. If provided, models will be loaded from this path.
+        """
+        self.models: List = []  # Models will be stored here
+        self.n_samples = n_samples
+        
+        if load_path:
+            # Load pretrained models from the specified path
+            self._load_models(load_path)
+        else:
+            # Ensure training parameters are provided
+            if X_train is None or Y_train is None or n_fidelities is None:
+                raise ValueError("X_train, Y_train, and n_fidelities must be provided for training.")
+            
+            # Store training-only parameters
+            self.optimization_restarts = optimization_restarts
+
+            # Train new models
+            self._train_models(X_train, Y_train, n_fidelities, ARD_last_fidelity, parallel, num_processes)
+    
+    def _load_models(self, path: str) -> None:
+        """
+        Load pre-trained models from the specified path.
+        """
+        models = []
+        i = 0
+        while True:
+            try:
+                # Load models for each bin
+                m1 = GPy.models.GPRegression.load_model(os.path.join(path,f"bin{i:03d}_m1.zip"))
+                m2 = GPy.models.GPRegression.load_model(os.path.join(path,f"bin{i:03d}_m2.zip"))
+                m3 = GPy.models.GPRegression.load_model(os.path.join(path,f"bin{i:03d}_m3.zip"))
+                models.append([m1, m2, m3])
+                i += 1
+            except FileNotFoundError:
+                # Stop when no more models are found
+                break
+
+        if not models:
+            raise ValueError(f"No models found in the path: {path}")
+        
+        self.models = models
+        
+    def _train_models(
         self,
         X_train: List[np.ndarray],
         Y_train: List[np.ndarray],
         n_fidelities: int,
-        n_samples: int = 500,
-        optimization_restarts: int = 30,
-        # turn_off_bias: bool = False,
-        ARD_last_fidelity: bool = False,
-        parallel: bool = False,
-        num_processes: Optional[int] = None
+        ARD_last_fidelity: bool,
+        parallel: bool,
+        num_processes: Optional[int],
     ) -> None:
-
-        self.n_samples = n_samples
-        self.optimization_restarts = optimization_restarts
 
         # a list of GP emulators
         models: List = []
@@ -338,7 +400,7 @@ class SingleBindGMGP:
             m1.optimize(max_iters = 500)
             m1[".*Gaussian_noise"].unfix()
             m1[".*Gaussian_noise"].constrain_positive()
-            m1.optimize_restarts(optimization_restarts, optimizer = "bfgs",  max_iters = 100, parallel=parallel,num_processes=num_processes)
+            m1.optimize_restarts(self.optimization_restarts, optimizer = "bfgs",  max_iters = 100, parallel=parallel,num_processes=num_processes)
 
             mu1, v1 = m1.predict(D3)
 
@@ -351,7 +413,7 @@ class SingleBindGMGP:
             m2.optimize(max_iters = 500)
             m2[".*Gaussian_noise"].unfix()
             m2[".*Gaussian_noise"].constrain_positive()
-            m2.optimize_restarts(optimization_restarts, optimizer = "bfgs",  max_iters = 100, parallel=parallel, num_processes=num_processes)
+            m2.optimize_restarts(self.optimization_restarts, optimizer = "bfgs",  max_iters = 100, parallel=parallel, num_processes=num_processes)
 
             mu2, v2 = m2.predict(D3)
 
@@ -378,7 +440,7 @@ class SingleBindGMGP:
                         m3.optimize(max_iters = 500)
                         m3[".*Gaussian_noise"].unfix()
                         m3[".*Gaussian_noise"].constrain_positive()
-                        m3.optimize_restarts(optimization_restarts, optimizer = "bfgs",  max_iters = 100, parallel=parallel, num_processes=num_processes)
+                        m3.optimize_restarts(self.optimization_restarts, optimizer = "bfgs",  max_iters = 100, parallel=parallel, num_processes=num_processes)
                         
                         return m3
 
@@ -394,7 +456,17 @@ class SingleBindGMGP:
 
             models.append([m1, m2, m3])
 
-            self.models = models
+        self.models = models
+
+    def save(self, save_dir: str) -> None: 
+        """
+        Save the models to individual files.
+        """
+        for i, model in enumerate(self.models):  # loop through k bins
+            m1, m2, m3 = model
+            m1.save_model(os.path.join(save_dir,f"bin{i:03d}_m1"))
+            m2.save_model(os.path.join(save_dir,f"bin{i:03d}_m2"))
+            m3.save_model(os.path.join(save_dir,f"bin{i:03d}_m3"))
 
     def predict(self, X: np.ndarray) -> Tuple[np.ndarray, np.ndarray]:
         """
