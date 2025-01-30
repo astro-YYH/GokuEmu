@@ -1,83 +1,78 @@
 import sys
 sys.path.append("../")
 import numpy as np
-from error_function.dgmgp_error import generate_data
 # import contextlib
 # import io
 import os
 from matter_multi_fidelity_emu.gpemulator_singlebin import SingleBindGMGP 
-from matter_multi_fidelity_emu.gpemulator_singlebin import _map_params_to_unit_cube as input_normalize
 from typing import Tuple, List, Optional, Dict
 
-def predict(L1HF_dir, L2HF_dir, X_target, n_optimization_restarts=20):
-    data_1, data_2 = generate_data(folder_1=L1HF_dir, folder_2=L2HF_dir)
-
-    # highres: log10_ks; lowres: log10_k
-    # with contextlib.redirect_stdout(io.StringIO()):  # Redirect stdout to a null stream
-    dgmgp = SingleBindGMGP(
-            X_train=[data_1.X_train_norm[0][:100], data_2.X_train_norm[0][:100], data_1.X_train_norm[1]],  # L1, L2, HF
-            Y_train=[data_1.Y_train_norm[0][:100], data_2.Y_train_norm[0][:100], data_1.Y_train_norm[1]],
-            n_fidelities=2,
-            n_samples=400,
-            optimization_restarts=n_optimization_restarts,
-            ARD_last_fidelity=False,
-            parallel=True,
-            num_processes=10
-            )
-    X_target_norm = input_normalize(X_target, data_1.parameter_limits)
-    lg_P_mean, lg_P_var = dgmgp.predict(X_target_norm)
-    return lg_P_mean, lg_P_var
-
-def predict_z(L1HF_base,L2HF_base,z, X_target):
-    L1HF_dir = L1HF_base + '_z%s' % z
-    L2HF_dir = L2HF_base + '_z%s' % z
-    print('training the emulator based on the data of z =', z)
-    lg_P_mean, lg_P_var = predict(L1HF_dir, L2HF_dir, X_target)
-    print('predicted the matter power spectrum at z =', z)
-        # Combine arrays vertically to create a 2D array where each array is a column
-    header_str_mean = 'mean(lg_P) also median/mode'
-        # Save the combined array to a text file, with each array as a column
-    np.savetxt('matter_pow_lg_mean_z%s.txt' % (z), lg_P_mean, fmt='%f', header=header_str_mean)
-    header_str_var = 'var(lg_P)'
-        # Save the combined array to a text file, with each array as a column
-    np.savetxt('matter_pow_lg_var_z%s.txt' % (z), lg_P_var, fmt='%f', header=header_str_var)
-    header_str_mode = 'mode(P)'
-    P_mode = 10**lg_P_mean * np.exp(-lg_P_var * (np.log(10)) **2)
-        # Save the combined array to a text file, with each array as a column
-    np.savetxt('matter_pow_mode_z%s.txt' % (z), P_mode, fmt='%f', header=header_str_mode)
-
-
-zs = ['0', '0.2', '0.5', '1', '2', '3']
-
-
-def input_norm(cosmo_params: np.ndarray, bounds):
-    cosmo_params_norm = np.zeros_like(cosmo_params)
-    for i in range(len(cosmo_params)):
-        for j in range(len(bounds)):
-            cosmo_params_norm[i][j] = (cosmo_params[i][j] - bounds[j][0]) / (bounds[j][1] - bounds[j][0])
-    return cosmo_params_norm
-
-class MatterPowerEmulator:
+def input_norm(cosmo_params: np.ndarray, bounds: np.ndarray) -> np.ndarray:
     """
-    API for predicting the matter power spectrum using a pre-trained emulator.
+    Normalize cosmological parameters to the range [0,1] based on given parameter bounds.
 
     Parameters:
     ----
-    :param model_path: Path to the pretrained models.
-    """
-    def __init__(self, model_path: str="../test/pre-trained"):
+    :param cosmo_params: (np.ndarray) Array of cosmological parameters to normalize.
+    :param bounds: (np.ndarray) Array of shape (n_params, 2) containing min/max values for each parameter.
 
-        zs_str = ['0', '0.2', '0.5', '1', '2', '3']  # redshifts supported at the moment
-        self.zs = [float(z) for z in zs_str]
+    Returns:
+    ----
+    :return: (np.ndarray) Normalized cosmological parameters in the range [0,1].
+    """
+    return (cosmo_params - bounds[:, 0]) / (bounds[:, 1] - bounds[:, 0])
+
+class MatterPowerEmulator:
+    """
+    An emulator for predicting the nonlinear matter power spectrum using a pre-trained Gaussian Process model.
+
+    This class loads pre-trained models for different redshifts and provides predictions based on input cosmological parameters.
+
+    Parameters:
+    ----
+    :param model: Name of the emulator model to load. Options:
+        - "GokuEmu"  : Standard emulator trained on the whole Goku suite
+        - "GokuEmu-W": Wide-range parameter space emulator trained solely on Goku-W
+        - "GokuEmu-N": Narrow-range parameter space emulator trained solely on Goku-N
+    """
+    def __init__(self, model: str="GokuEmu"):
+        """
+        Initialize the Matter Power Emulator by loading pre-trained models.
+
+        Parameters:
+        ----
+        :param model: (str) The name of the emulator model to use. Choices:
+            - "GokuEmu"  : Default model
+            - "GokuEmu-W": Wide-range emulator
+            - "GokuEmu-N": Narrow-range emulator
+
+        Raises:
+        ----
+        :raises ValueError: If an invalid model name is provided.
+        """
+
+        self.goku_model = model
+
+        model_paths = {
+            "GokuEmu": "../emulator/pre-trained/goku",
+            "GokuEmu-W": "../emulator/pre-trained/goku-w",
+            "GokuEmu-N": "../emulator/pre-trained/goku-n"
+        }
+
+        model_path = model_paths.get(model)
+        if model_path is None:
+            raise ValueError(f"Invalid model '{model}'. Choose from {list(model_paths.keys())}.")
+
+        self.zs = np.array([0, 0.2, 0.5, 1, 2, 3], dtype=float)
         models_zs = []
         # Load models for each redshift
-        for z in zs_str:
-            model_dir = os.path.join(model_path, f'a{1/(1+float(z)):.4f}')
+        for z in self.zs:
+            model_dir = os.path.join(model_path, f'a{1/(1+z):.4f}')
             models_zs.append(SingleBindGMGP(load_path=model_dir))
 
         self.models_zs = models_zs
         # load k values
-        lgk = np.loadtxt("../data/dev/dev_297_Box25_Part75_27_Box100_Part300_z0/kf.txt")
+        lgk = np.loadtxt("../data/combined/matter_power_1128_Box1000_Part750_36_Box1000_Part3000_z0/kf.txt")
         self.k = 10**lgk
 
     def predict(
@@ -96,42 +91,54 @@ class MatterPowerEmulator:
         redshift: float = 0.0,
         ) -> Dict[str, np.ndarray]:
         """
-        Predict the matter power spectrum for given cosmological parameters.
-        
-        If `cosmo_params` is not provided, individual cosmological parameters will be used.
+        Predict the nonlinear matter power spectrum for a given set of cosmological parameters.
+
+        If `cosmo_params` is provided, it should be a NumPy array of shape `(n_samples, n_params)`. Otherwise, individual parameter values will be used.
 
         Parameters:
         ----
-        :param cosmo_params: A NumPy array of shape (n_samples, n_params) containing all cosmological parameters.
-        :param Omega_m: Matter density parameter.
-        :param Omega_b: Baryon density parameter.
-        :param hubble: Hubble constant (h).
-        :param scalar_amp: Scalar amplitude.
-        :param ns: Spectral index.
-        :param w0: Dark energy equation of state parameter.
-        :param wa: Evolution of dark energy equation of state.
-        :param mnu: Sum of neutrino masses (eV).
-        :param Neff: Effective number of neutrino species.
-        :param alphas: Running of the spectral index.
-        
+        :param cosmo_params: (Optional[np.ndarray]) An array containing one/multiple set(s) of cosmological parameters.
+        :param Om: (float) Total matter density parameter (Omega_m).
+        :param Ob: (float) Baryon density parameter (Omega_b).
+        :param hubble: (float) Reduced Hubble parameter (h).
+        :param As: (float) Scalar amplitude of primordial fluctuations.
+        :param ns: (float) Spectral index of the primordial power spectrum.
+        :param w0: (float) Dark energy equation of state parameter at present.
+        :param wa: (float) Evolution of dark energy equation of state.
+        :param mnu: (float) Sum of neutrino masses (eV).
+        :param Neff: (float) Effective number of relativistic neutrino species.
+        :param alphas: (float) Running of the spectral index.
+        :param redshift: (float) Redshift at which to compute the power spectrum.
+
         Returns:
         ----
-        :return: A dictionary containing "k", "mode_P", and "variance_P".
+        :return: A tuple containing:
+            - k (np.ndarray): Wavenumber values in h/Mpc.
+            - mode_P (np.ndarray): Predicted power spectrum values.
+            - variance_P (np.ndarray): Variance of the predictions.
+
+        Raises:
+        ----
+        :raises ValueError: If the given redshift is not supported.
         """
         # Get the model for the given redshift, raise error if redshift is not supported
-        if redshift not in self.zs:
+        idx = np.where(self.zs == redshift)[0]
+        if idx.size == 0:
             raise ValueError(f"Redshift {redshift} is not supported. Choose from {self.zs}")
-        model_z = self.models_zs[self.zs.index(redshift)]
+
+        model_z = self.models_zs[idx[0]]
         
         # If cosmo_params is not provided, use individual parameters
         if cosmo_params is None:
-            cosmo_params = np.array([Om, Ob, hubble, As, ns, w0, wa, mnu, Neff, alphas])
-            cosmo_params = cosmo_params.reshape(1, -1)  # Ensure it has correct shape
-        elif len(cosmo_params.shape) == 1:
-            cosmo_params = cosmo_params.reshape(1, -1)
+            cosmo_params = np.array([[Om, Ob, hubble, As, ns, w0, wa, mnu, Neff, alphas]])
+        else:
+            cosmo_params = np.atleast_2d(cosmo_params)
 
         # Load parameter bounds
-        bounds = np.loadtxt("../data/dev/dev_297_Box25_Part75_27_Box100_Part300_z0/input_limits.txt")
+        if self.goku_model == "GokuEmu-N":
+            bounds = np.loadtxt("../data/narrow/matter_power_564_Box1000_Part750_15_Box1000_Part3000_z0/input_limits.txt")
+        else:
+            bounds = np.loadtxt("../data/combined/matter_power_1128_Box1000_Part750_36_Box1000_Part3000_z0/input_limits.txt")
 
         # Normalize input
         cosmo_params_norm = input_norm(cosmo_params, bounds)  
@@ -140,11 +147,9 @@ class MatterPowerEmulator:
         mean, var = model_z.predict(cosmo_params_norm)  # mean(log10(P)), var(log10(P))
 
         # Compute mode and variance in linear scale
-        mode_P = 10**mean * np.exp(-var * (np.log(10)) ** 2)
-        var_P = (
-            10 ** (2 * mean)
-            * np.exp(var * (np.log(10)) ** 2)
-            * (np.exp(var * (np.log(10)) ** 2) - 1)
-        )
+        log10_sq = (np.log(10)) ** 2
+        mode_P = 10**mean * np.exp(-var * log10_sq)
+        var_P = 10**(2 * mean) * np.exp(var * log10_sq) * (np.exp(var * log10_sq) - 1)
+
         # Return results: k, mode_P, and var_P
         return self.k, mode_P, var_P
