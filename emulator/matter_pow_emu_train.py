@@ -35,8 +35,6 @@ def save_z(L1HF_base,L2HF_base,z, save_path, n_optimization_restarts,num_process
     print('training the emulator based on the data of z =', z)
     save_gp(L1HF_dir, L2HF_dir, save_path, n_optimization_restarts = n_optimization_restarts,num_processes = num_processes)
 
-L1HF_base = '../data/combined/matter_power_1128_Box1000_Part750_36_Box1000_Part3000' 
-L2HF_base = '../data/combined/matter_power_1128_Box250_Part750_36_Box1000_Part3000' 
 num_processes = 10 # multiprocessing cores per MPI rank
 n_optimization_restarts = 25 # larger safer possibly
 
@@ -56,15 +54,18 @@ if __name__ == "__main__":
     #-------------- Cmd line Args ------------------------------
     parser = argparse.ArgumentParser(description=' ')
     # L1HF_base
-    parser.add_argument('--L1HF_base',required=False,default=L1HF_base,type=str,help='directory for L1HF_base')
+    parser.add_argument('--L1HF_base',required=False,default='../data/combined/matter_power_1128_Box1000_Part750_36_Box1000_Part3000',type=str,help='directory for L1HF_base')
     # L2HF_base
-    parser.add_argument('--L2HF_base',required=False,default=L2HF_base,type=str,help='directory for L2HF_base')
+    parser.add_argument('--L2HF_base',required=False,default='../data/combined/matter_power_1128_Box250_Part750_36_Box1000_Part3000' ,type=str,help='directory for L2HF_base')
     parser.add_argument('--outdir',required=False,default='pre-trained',type=str,help='directory for saving the models')
 
     args = parser.parse_args()
     
     #--------------------------
     outdir = args.outdir
+
+    L1HF_base = args.L1HF_base
+    L2HF_base = args.L2HF_base
 
     if rank == 0:
         if not os.path.exists(outdir):
