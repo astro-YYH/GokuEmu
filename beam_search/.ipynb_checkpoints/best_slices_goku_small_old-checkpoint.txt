@@ -1,2 +1,0 @@
-# 1. len_slice  2. n_select_slc  3. beams  4. n_optimization_restarts  5. best slices  6. best points  7. loss (variance)  8. time spent (min)
-3  7  1  20  [81, 107, 56, 73, 55, 80, 77]  [243, 244, 245, 321, 322, 323, 168, 169, 170, 219, 220, 221, 165, 166, 167, 240, 241, 242, 231, 232, 233]  8.973791e-03 606.60
