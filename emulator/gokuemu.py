@@ -35,9 +35,13 @@ class MatterPowerEmulator:
         - "GokuEmu-W": Wide-range parameter space emulator trained solely on Goku-W
         - "GokuEmu-N": Narrow-range parameter space emulator trained solely on Goku-N
     """
-    def __init__(self, model: str="GokuEmu"):
+
+    # Define the allowed redshifts for the emulator
+    PRESET_ZS = np.array([0, 0.2, 0.5, 1, 2, 3], dtype=float)
+
+    def __init__(self, model: str="GokuEmu", redshifts: Optional[List[float]] = None):
         """
-        Initialize the Matter Power Emulator by loading pre-trained models.
+        Initialize the Matter Power Emulator by loading pre-trained models for selected redshifts.
 
         Parameters:
         ----
@@ -63,7 +67,20 @@ class MatterPowerEmulator:
         if model_path is None:
             raise ValueError(f"Invalid model '{model}'. Choose from {list(model_paths.keys())}.")
 
-        self.zs = np.array([0, 0.2, 0.5, 1, 2, 3], dtype=float)
+        # Validate and set redshifts
+        if redshifts is None:
+            self.zs = self.PRESET_ZS  # Use all pre-set redshifts by default
+        else:
+            redshifts = np.array(redshifts, dtype=float)
+            if np.any((redshifts < self.PRESET_ZS.min()) | (redshifts > self.PRESET_ZS.max())):
+                raise ValueError(f"Redshifts must be within {self.PRESET_ZS}. Given: {redshifts}")
+
+            # Keep only valid redshifts from PRESET_ZS
+            self.zs = np.array([z for z in self.PRESET_ZS if z in redshifts])
+
+            if self.zs.size == 0:
+                raise ValueError(f"No valid redshifts selected. Choose from {self.PRESET_ZS}.")
+            
         models_zs = []
         # Load models for each redshift
         for z in self.zs:
