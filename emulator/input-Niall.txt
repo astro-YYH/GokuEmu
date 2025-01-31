@@ -1,5 +1,0 @@
-# cosmology: from Niall, Euclid
-# omega0 omegab hubble scalar_amp ns w0 wa mnu Neff alphas
-3.190000e-01 4.9000000e-02 6.700000e-01 2.10000000e-09 9.600000e-01 -1.0000000e+00 0.00000000 0.587000e-01 3.0440000e+00 0.00000000e+00
-
-
