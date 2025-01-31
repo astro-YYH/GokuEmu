@@ -70,9 +70,12 @@ if __name__ == "__main__":
     if rank == 0:
         if not os.path.exists(outdir):
             os.mkdir(outdir)
+        print('L1HF_base:', L1HF_base)
+        print('L2HF_base:', L2HF_base)
+        print('outdir:', outdir)
     
     comm.Barrier()
-
+        
     # Distribute the tasks evenly across ranks
     tasks_for_this_rank = [i for i in range(rank, n_tasks, size)]
 
