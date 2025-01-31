@@ -173,15 +173,6 @@ def select_slices(X: np.ndarray, Y: np.ndarray, len_slice: int = 3, n_select_slc
 
     return optimal_ind, min_loss
 
-# def loss_redshifts(train_opt_zs, ind: np.ndarray, n_optimization_restarts:int = 5) -> float:
-#     losses = []
-#     for train_opt in train_opt_zs:
-#         with contextlib.redirect_stdout(io.StringIO()):
-#             loss = train_opt.loss(ind, n_optimization_restarts=n_optimization_restarts)
-#             losses.append(loss)
-#     loss = np.mean(losses)
-#     return loss
-
 def loss_redshifts(train_opt_zs, ind: np.ndarray, n_optimization_restarts: int = 5, parallel: bool = True) -> float:
     if parallel:
         return loss_redshifts_parallel(train_opt_zs, ind, n_optimization_restarts)
