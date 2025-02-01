@@ -34,13 +34,19 @@ pip install GPy matplotlib emukit
 ```
 Other required dependencies (e.g., numpy, cython) will be installed automatically.
 
+---
+
 ## Usage
 
 A brief example is provided in `emulator/example.ipynb`, demonstrating how to use GokuEmu for matter power spectrum predictions.
 
+---
+
 ## Citation
 If you use GokuEmu or the Goku dataset in your research, please cite:  
 https://arxiv.org/abs/2501.06296
+
+--- 
 
 ## **License**
 This project is licensed under the MIT License.
