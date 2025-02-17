@@ -26,6 +26,10 @@ from emukit.multi_fidelity.convert_lists_to_array import (
     convert_xy_lists_to_arrays,
     convert_x_list_to_array,
 )
+import multiprocessing
+import psutil
+import threading
+
 
 # we made modifications on not using the ARD for high-fidelity
 from .non_linear_multi_fidelity_models.non_linear_multi_fidelity_model import NonLinearMultiFidelityModel, make_non_linear_kernels
@@ -480,6 +484,11 @@ class SingleBindGMGP:
         variances = np.full((X.shape[0], len(self.models)), fill_value=np.nan)
 
         for i,model in enumerate(self.models):
+            print(f"Number of CPU cores: {multiprocessing.cpu_count()}")
+            process = psutil.Process()
+            print(f"Active child processes: {len(process.children())}")
+            print(f"NumPy max threads: {np.__config__.show()}")  # Show backend info
+            print(f"Active threads: {threading.active_count()}")  # Count active threads
             m1, m2, m3 = model
 
             ''' Compute posterior mean and variance for level 3 evaluated at the test points '''

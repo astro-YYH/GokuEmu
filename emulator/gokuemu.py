@@ -60,7 +60,8 @@ class MatterPowerEmulator:
         model_paths = {
             "GokuEmu": "../emulator/pre-trained/goku",
             "GokuEmu-W": "../emulator/pre-trained/goku-w",
-            "GokuEmu-N": "../emulator/pre-trained/goku-n"
+            "GokuEmu-N": "../emulator/pre-trained/goku-n",
+            "GokuEmu-pre-N": "../emulator/pre-trained/goku-pre-n"
         }
 
         model_path = model_paths.get(model)
@@ -89,7 +90,10 @@ class MatterPowerEmulator:
 
         self.models_zs = models_zs
         # load k values
-        lgk = np.loadtxt("../data/combined/matter_power_1128_Box1000_Part750_36_Box1000_Part3000_z0/kf.txt")
+        if "GokuEmu-pre-N" == model:
+            lgk = np.loadtxt("../data/narrow/matter_power_297_Box100_Part75_27_Box100_Part300_z0/kf.txt")
+        else:
+            lgk = np.loadtxt("../data/combined/matter_power_1128_Box1000_Part750_36_Box1000_Part3000_z0/kf.txt")
         self.k = 10**lgk
 
     def predict(
@@ -152,7 +156,7 @@ class MatterPowerEmulator:
             cosmo_params = np.atleast_2d(cosmo_params)
 
         # Load parameter bounds
-        if self.goku_model == "GokuEmu-N":
+        if self.goku_model == "GokuEmu-N" or self.goku_model == "GokuEmu-pre-N":
             bounds = np.loadtxt("../data/narrow/matter_power_564_Box1000_Part750_15_Box1000_Part3000_z0/input_limits.txt")
         else:
             bounds = np.loadtxt("../data/combined/matter_power_1128_Box1000_Part750_36_Box1000_Part3000_z0/input_limits.txt")
