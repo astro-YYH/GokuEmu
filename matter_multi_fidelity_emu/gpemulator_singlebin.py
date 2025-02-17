@@ -27,7 +27,6 @@ from emukit.multi_fidelity.convert_lists_to_array import (
     convert_x_list_to_array,
 )
 import multiprocessing
-import psutil
 import threading
 
 
