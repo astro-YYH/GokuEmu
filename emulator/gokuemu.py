@@ -161,6 +161,12 @@ class MatterPowerEmulator:
         else:
             bounds = np.loadtxt("../data/combined/matter_power_1128_Box1000_Part750_36_Box1000_Part3000_z0/input_limits.txt")
 
+        # load P+F correction
+        if not self.goku_model == "GokuEmu-pre-N":
+            Pcorr = np.loadtxt(f"./pre_trained/goku-n/correction_pplusf-{1/(1+self.zs[idx[0]]):.4f}.txt", usecols=(1,))
+        else: # unit correction
+            Pcorr = np.ones(len(self.k))
+
         # Normalize input
         cosmo_params_norm = input_norm(cosmo_params, bounds)  
 
@@ -171,6 +177,9 @@ class MatterPowerEmulator:
         log10_sq = (np.log(10)) ** 2
         mode_P = 10**mean * np.exp(-var * log10_sq)
         var_P = 10**(2 * mean) * np.exp(var * log10_sq) * (np.exp(var * log10_sq) - 1)
+
+        # apply P+F correction to mode_P
+        mode_P = mode_P * Pcorr
 
         # Return results: k, mode_P, and var_P
         return self.k, mode_P, var_P
