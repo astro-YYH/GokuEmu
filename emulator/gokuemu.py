@@ -163,7 +163,9 @@ class MatterPowerEmulator:
 
         # load P+F correction
         if not self.goku_model == "GokuEmu-pre-N":
-            Pcorr = np.loadtxt(f"./pre_trained/goku-n/correction_pplusf-{1/(1+self.zs[idx[0]]):.4f}.txt", usecols=(1,))
+            kcorr, Pcorr = np.loadtxt(f"./pre-trained/goku-n/correction_pplusf-{1/(1+self.zs[idx[0]]):.4f}.txt", usecols=(0,1), unpack=True)
+            # interpolate Pcorr in log k space
+            Pcorr = np.interp(np.log10(self.k), np.log10(kcorr), Pcorr)
         else: # unit correction
             Pcorr = np.ones(len(self.k))
 
