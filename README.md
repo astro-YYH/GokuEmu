@@ -15,7 +15,7 @@ git clone https://github.com/astro-YYH/GokuEmu.git
 cd GokuEmu
 ```
 
-### 2. Create a Virtual Environment (Optional but recommended)
+### 2 Create a Virtual Environment (Optional but recommended)
 If using conda:
 ```bash
 conda create -n goku-env python=3.8
