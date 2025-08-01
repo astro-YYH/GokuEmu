@@ -52,6 +52,8 @@ if __name__ == "__main__":
     parser.add_argument("--output_file", type=str, default="best_slices.txt")
     parser.add_argument("--print_all", type=int, default=0)
     parser.add_argument("--parallel_redshift", type=int, default=1)
+    # slices already selected, for example: "24, 34, 42"
+    parser.add_argument("--selected", type=str, default=None)
 
     args = parser.parse_args()
 
@@ -73,14 +75,22 @@ if __name__ == "__main__":
 
     len_slice = args.len_slice
     n_select_slc = args.n_select_slc
+    # extract selected slices from the string
+    if args.selected is not None:
+        selected_slices = [int(s) for s in args.selected.split(",")]
+        print("Selected slices:", selected_slices)
+    else:
+        selected_slices = None
     beams = args.beams
     n_optimization_restarts = args.n_optimization_restarts
     output_file = args.output_file
     print_all = args.print_all
     parallel_redshift = args.parallel_redshift
 
-    print("len_slice  n_select_slc  beams  n_optimization_restarts  output_file")
-    print(len_slice, n_select_slc, beams, n_optimization_restarts, output_file)
+    print("len_slice  n_select_slc  beams  n_optimization_restarts  output_file  selected_slices")
+    print(len_slice, n_select_slc, beams, n_optimization_restarts, output_file, selected_slices)
+
+    print("%d (more) slices will be selected from the training set." % (n_select_slc))
 
     data = PowerSpecsMultiRedshift(folder=data_folder, X_file=X_file, Y_base=Y_base)
 
@@ -92,7 +102,7 @@ if __name__ == "__main__":
     redshifts = np.round(redshifts, decimals=1)
     print("Redshifts: ", redshifts)
 
-    ind_selected, loss = select_slices_redshifts(X, Y, len_slice=len_slice, n_select_slc=n_select_slc, beams=beams, n_optimization_restarts=n_optimization_restarts, print_all=print_all, parallel_redshift=parallel_redshift)
+    ind_selected, loss = select_slices_redshifts(X, Y, len_slice=len_slice, n_select_slc=n_select_slc, beams=beams, n_optimization_restarts=n_optimization_restarts, print_all=print_all, parallel_redshift=parallel_redshift, selected_slices=selected_slices)
     # ind_selected, loss = select_slices(X, Y, len_slice=3, n_select_slc=3, beams=1, n_optimization_restarts=3)
     # print("Selected indices:", ind_selected)
     # print("Loss:", loss)
