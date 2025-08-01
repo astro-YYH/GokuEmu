@@ -217,7 +217,7 @@ def loss_scales_redshifts(train_opt_scales_zs, ind: np.ndarray, n_optimization_r
     return loss
 
 
-def select_slices_redshifts(X: np.ndarray, Y: np.ndarray, len_slice: int = 3, n_select_slc: int = 1, beams: int = 1, n_optimization_restarts: int = 5, print_all: bool=False, parallel_redshift: bool=True):
+def select_slices_redshifts(X: np.ndarray, Y: np.ndarray, len_slice: int = 3, n_select_slc: int = 1, beams: int = 1, n_optimization_restarts: int = 5, print_all: bool=False, parallel_redshift: bool=True, selected_slices: list = None):
     """Select the slices of the training set for the low-fidelity simulation.
     
     Args:
@@ -241,8 +241,25 @@ def select_slices_redshifts(X: np.ndarray, Y: np.ndarray, len_slice: int = 3, n_
 
     all_slice_loss = []
 
+    if selected_slices is None:
+        selected_slices = []
+
     # beam search layer 1
     for i, selected_ind in enumerate(all_slices):
+
+        # if selected_slices is not None:
+        if len(selected_slices) > 0:
+            if i in selected_slices:
+                print("Skipping slice", i, "as it is already selected.")
+                all_slice_loss.append(np.inf)
+                continue
+
+        test_slices = selected_slices + [i]  # e.g., [4,5,6] points
+
+        # combine selected slices with the current slice
+        selected_ind = all_slices[test_slices].flatten()  # e.g., [4,5,6] point indices
+
+        print("Testing slices:", test_slices, "i.e., points", selected_ind)
         # need to convert to boolean array
         ind = np.zeros(num_samples, dtype=bool)
         ind[np.array(selected_ind)] = True
@@ -251,7 +268,7 @@ def select_slices_redshifts(X: np.ndarray, Y: np.ndarray, len_slice: int = 3, n_
         loss = loss_redshifts(train_opt_zs, ind, n_optimization_restarts=n_optimization_restarts, parallel=parallel_redshift)
         # print time now
         print("Time now:", datetime.datetime.now())
-        print("Loss function for slice", i, "=", loss)
+        print("Loss function for slice", i, "(combined with", selected_slices, ") =", loss)
         all_slice_loss.append(loss)
         
     if beams == -1:
@@ -262,8 +279,10 @@ def select_slices_redshifts(X: np.ndarray, Y: np.ndarray, len_slice: int = 3, n_
     for k, ind_slc in enumerate(ind_small_loss):  # e.g., 4 in [4,11,9]
         print("\nBeam search: chain %d/%d" % (k+1, beams), "\n")
 
-        selected_ind = np.array(all_slices[ind_slc])  # e.g., [4,5,6] point indices
-        ind_selected_slc = np.array([ind_slc])  # e.g., [4]
+        
+        ind_selected_slc = np.array(selected_slices+[ind_slc])  # e.g., [4]
+        selected_ind = all_slices[ind_selected_slc].flatten()  # e.g., [4,5,6] point indices
+
         if n_select_slc == 1:
             beam_ind.append(selected_ind)
             beam_loss.append(all_slice_loss[ind_slc])
@@ -289,7 +308,7 @@ def select_slices_redshifts(X: np.ndarray, Y: np.ndarray, len_slice: int = 3, n_
                     ind_loss.append(j)
                 i_min_loss = np.argmin(combine_loss)
                 ind_selected_slc = np.append(ind_selected_slc,np.array([ind_loss[i_min_loss]]))
-                selected_ind = np.array(all_slices[ind_selected_slc])
+                selected_ind = all_slices[ind_selected_slc]
             beam_ind.append(selected_ind)
             beam_loss.append(np.min(combine_loss))
             assert np.min(combine_loss) == combine_loss[i_min_loss]
